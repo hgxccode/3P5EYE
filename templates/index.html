@@ -1991,13 +1991,13 @@
                 // 更新眼内角Y坐标
                 const innerEyeY = baseY + h;
                 
-                // 左眼内角（当只有右眼内角时推算）
+                // 左眼内角（推算点）
                 if (lm.left_inner_eye && lm.left_inner_eye.type === 'inferred') {
                     lm.left_inner_eye.x = centerX - L;
                     lm.left_inner_eye.y = innerEyeY;
                 }
                 
-                // 右眼内角（当只有左眼内角时推算）
+                // 右眼内角（推算点）
                 if (lm.right_inner_eye && lm.right_inner_eye.type === 'inferred') {
                     lm.right_inner_eye.x = centerX + L;
                     lm.right_inner_eye.y = innerEyeY;
@@ -2215,15 +2215,14 @@
             // ========== 1. 推算眼部点位 ==========
             if (L !== null && eyeY !== null) {
                 // 左眼内角：左眼内角线(centerX - L)与眼内角水平线(eyeY)的交点
-                // 当只有右眼内角时推算左眼内角
-                if (!lm.left_inner_eye && lm.right_inner_eye) {
+                // 只要有L值和eyeY，即可推算内眼角（无需依赖另一侧存在）
+                if (!lm.left_inner_eye) {
                     const leftInnerX = centerX - L;
                     lm.left_inner_eye = { x: leftInnerX, y: eyeY, type: 'inferred' };
                 }
                 
                 // 右眼内角：右眼内角线(centerX + L)与眼内角水平线(eyeY)的交点
-                // 当只有左眼内角时推算右眼内角
-                if (!lm.right_inner_eye && lm.left_inner_eye) {
+                if (!lm.right_inner_eye) {
                     const rightInnerX = centerX + L;
                     lm.right_inner_eye = { x: rightInnerX, y: eyeY, type: 'inferred' };
                 }
