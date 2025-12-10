@@ -1,0 +1,2598 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三庭五眼- 专业版</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #1e1e1e;
+            --bg-panel: #252526;
+            --bg-header: #333333;
+            --accent-color: #0078d4;
+            --accent-hover: #106ebe;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --border-color: #3e3e42;
+            --inferred-color: #ffa500;
+            --manual-color: #ff4757;
+            --source-color: #2ed573;
+            --ai-color: #9b59b6;
+            --refline-color: #00bcd4;
+            --auxline-color: #ff9800;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            height: 50px;
+            background-color: var(--bg-header);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid var(--border-color);
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo i { color: var(--accent-color); }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 320px;
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .sidebar-section { margin-bottom: 20px; }
+
+        .sidebar-title {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-title i { color: var(--accent-color); }
+
+        .tool-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 10px 15px;
+            background-color: #333;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 4px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+
+        .tool-btn:hover {
+            background-color: #3e3e42;
+            border-color: #555;
+        }
+        
+        .tool-btn i {
+            margin-right: 10px;
+            width: 16px;
+            text-align: center;
+        }
+
+        .tool-btn.primary {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .tool-btn.primary:hover { background-color: var(--accent-hover); }
+        
+        .tool-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .tool-btn.ai {
+            background-color: var(--ai-color);
+            border-color: var(--ai-color);
+        }
+
+        .tool-btn.ai:hover { background-color: #8e44ad; }
+
+        .tool-btn-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .tool-btn-row .tool-btn {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .tool-btn-small {
+            padding: 8px 12px;
+            font-size: 11px;
+        }
+
+        .tool-btn-small i { margin-right: 5px; }
+
+        .landmark-select {
+            width: 100%;
+            padding: 10px;
+            background-color: #333;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 4px;
+            font-size: 13px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        .landmark-select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .landmark-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .landmark-btn {
+            padding: 8px 6px;
+            background-color: #333;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .landmark-btn:hover {
+            background-color: #3e3e42;
+            border-color: #555;
+        }
+
+        .landmark-btn.active {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+        }
+
+        .landmark-btn.marked {
+            background-color: #2a5a2a;
+            border-color: #3a7a3a;
+            color: #8f8;
+        }
+
+        .landmark-btn.inferred {
+            background-color: #5a4a2a;
+            border-color: #7a6a3a;
+            color: #ffa500;
+        }
+
+        .landmark-btn.ai-detected {
+            background-color: #4a2a5a;
+            border-color: #6a3a7a;
+            color: #9b59b6;
+        }
+
+        .status-card {
+            background-color: #333;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .status-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .status-value {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .instructions-mini {
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            background: #333;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .mode-tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .mode-tab {
+            flex: 1;
+            padding: 10px;
+            background-color: #333;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-tab:hover { background-color: #3e3e42; }
+
+        .mode-tab.active {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .workspace {
+            flex: 1;
+            display: flex;
+            background-color: #1e1e1e;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .canvas-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .canvas-wrapper:last-child { border-right: none; }
+
+        .canvas-header {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background-color: rgba(0,0,0,0.7);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .canvas-toolbar {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 5px;
+            z-index: 10;
+        }
+
+        .canvas-tool-btn {
+            width: 32px;
+            height: 32px;
+            background-color: rgba(0,0,0,0.7);
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: #ccc;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .canvas-tool-btn:hover {
+            background-color: rgba(0,120,212,0.8);
+            color: white;
+        }
+
+        .canvas-tool-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .canvas-tool-btn.active {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .canvas-container {
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background-image: linear-gradient(45deg, #2d2d2d 25%, transparent 25%), linear-gradient(-45deg, #2d2d2d 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #2d2d2d 75%), linear-gradient(-45deg, transparent 75%, #2d2d2d 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 300px;
+            min-height: 300px;
+            border: 2px dashed #444;
+            border-radius: 4px;
+            transition: border-color 0.3s;
+        }
+        
+        .canvas-container.has-image {
+            border: none;
+            background: none;
+        }
+        
+        .canvas-container:hover { border-color: var(--accent-color); }
+
+        canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 70vh;
+        }
+        
+        canvas.dragging { cursor: grabbing !important; }
+        canvas.can-drag { cursor: grab; }
+        canvas.crosshair { cursor: crosshair; }
+
+        .upload-trigger {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-secondary);
+            z-index: 5;
+        }
+        
+        .upload-trigger i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #555;
+        }
+        
+        .upload-trigger:hover i { color: var(--accent-color); }
+        
+        .has-image .upload-trigger { display: none; }
+
+        input[type="file"] { display: none; }
+
+        .legend {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 11px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.manual { background-color: var(--manual-color); }
+        .legend-dot.inferred { background-color: var(--inferred-color); }
+        .legend-dot.source { background-color: var(--source-color); }
+        .legend-dot.ai { background-color: var(--ai-color); }
+        .legend-dot.contour { background-color: #3498db; }
+        .legend-dot.refline { background-color: var(--refline-color); }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s;
+        }
+        
+        .modal-content {
+            background-color: var(--bg-panel);
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+        
+        .modal-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title { font-size: 18px; font-weight: 600; }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .close-btn:hover { color: white; }
+        
+        #result-image {
+            max-width: 100%;
+            max-height: 70vh;
+            border: 1px solid #444;
+        }
+        
+        .modal-footer {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            flex-direction: column;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-color);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 15px;
+        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 12px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 20px;
+            background-color: #444;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .toggle-switch.active { background-color: var(--accent-color); }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background-color: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active::after { transform: translateX(20px); }
+
+        .section-divider {
+            border-top: 1px solid var(--border-color);
+            margin: 15px 0;
+            padding-top: 15px;
+        }
+        
+        .info-text {
+            font-size: 10px;
+            color: #888;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <i class="fas fa-magic"></i>
+            <span>三庭五眼0.10</span>
+        </div>
+        <div style="font-size: 12px; color: #888;">
+            智能人脸五官修复系统 - 支持拖拽调整 & 精确参考线
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="mode-tabs">
+                    <button class="mode-tab active" id="mode-locate">1. 定位五官</button>
+                    <button class="mode-tab" id="mode-transfer">2. 迁移修复</button>
+                </div>
+            </div>
+
+            <!-- Locate Mode Panel -->
+            <div id="locate-panel">
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fas fa-crosshairs"></i> 特征点标注</div>
+                    <div class="instructions-mini" style="margin-bottom: 10px;">
+                        点击标记特征点，<b>按住Alt键拖拽</b>可调整位置。标记2个以上点后可自动计算参考线。
+                    </div>
+                    
+                    <label style="font-size: 11px; color: var(--text-secondary); margin-bottom: 5px; display: block;">当前标注类型：</label>
+                    <select class="landmark-select" id="landmark-type">
+                        <optgroup label="眼部">
+                            <option value="left_inner_eye">左眼内角</option>
+                            <option value="right_inner_eye">右眼内角</option>
+                            <option value="left_outer_eye">左眼外角</option>
+                            <option value="right_outer_eye">右眼外角</option>
+                        </optgroup>
+                        <optgroup label="面部中线">
+                            <option value="forehead_top">上庭顶 (发际线)</option>
+                            <option value="eyebrow_center">眉心</option>
+                            <option value="nose_bottom">鼻底</option>
+                            <option value="lip_center">唇中</option>
+                            <option value="chin_bottom">下颌底</option>
+                        </optgroup>
+                        <optgroup label="鼻部">
+                            <option value="left_nose_wing">左鼻翼</option>
+                            <option value="right_nose_wing">右鼻翼</option>
+                        </optgroup>
+                        <optgroup label="嘴部">
+                            <option value="left_mouth_corner">左嘴角</option>
+                            <option value="right_mouth_corner">右嘴角</option>
+                            <option value="upper_lip_top">上唇顶</option>
+                        </optgroup>
+                        <optgroup label="耳部及下颌">
+                            <option value="left_ear">左耳</option>
+                            <option value="right_ear">右耳</option>
+                            <option value="chin_left">下颌左</option>
+                            <option value="chin_right">下颌右</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fas fa-th"></i> 已标注点位</div>
+                    <div class="landmark-grid" id="landmark-grid">
+                        <button class="landmark-btn" data-point="left_inner_eye">左眼内角</button>
+                        <button class="landmark-btn" data-point="right_inner_eye">右眼内角</button>
+                        <button class="landmark-btn" data-point="left_outer_eye">左眼外角</button>
+                        <button class="landmark-btn" data-point="right_outer_eye">右眼外角</button>
+                        <button class="landmark-btn" data-point="forehead_top">上庭顶</button>
+                        <button class="landmark-btn" data-point="eyebrow_center">眉心</button>
+                        <button class="landmark-btn" data-point="nose_bottom">鼻底</button>
+                        <button class="landmark-btn" data-point="lip_center">唇中</button>
+                        <button class="landmark-btn" data-point="chin_bottom">下颌底</button>
+                        <button class="landmark-btn" data-point="left_ear">左耳</button>
+                        <button class="landmark-btn" data-point="right_ear">右耳</button>
+                        <button class="landmark-btn" data-point="left_nose_wing">左鼻翼</button>
+                        <button class="landmark-btn" data-point="right_nose_wing">右鼻翼</button>
+                        <button class="landmark-btn" data-point="left_mouth_corner">左嘴角</button>
+                        <button class="landmark-btn" data-point="right_mouth_corner">右嘴角</button>
+                        <button class="landmark-btn" data-point="upper_lip_top">上唇顶</button>
+                        <button class="landmark-btn" data-point="chin_left">下颌左</button>
+                        <button class="landmark-btn" data-point="chin_right">下颌右</button>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <button id="infer-btn" class="tool-btn primary">
+                        <i class="fas fa-calculator"></i> 自动推算位置
+                    </button>
+                    <button id="clear-landmarks-btn" class="tool-btn">
+                        <i class="fas fa-trash-alt"></i> 清空标注
+                    </button>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fas fa-sliders-h"></i> 显示选项</div>
+                    <div class="toggle-container">
+                        <span>五眼参考线 (纵向)</span>
+                        <div class="toggle-switch" id="toggle-reflines"></div>
+                    </div>
+                    <div class="toggle-container">
+                        <span>三庭参考线 (水平)</span>
+                        <div class="toggle-switch" id="toggle-horizlines"></div>
+                    </div>
+                    <div class="toggle-container">
+                        <span>辅助参考线</span>
+                        <div class="toggle-switch" id="toggle-auxlines"></div>
+                    </div>
+                    <div class="toggle-container">
+                        <span>显示AI轮廓</span>
+                        <div class="toggle-switch" id="toggle-contour"></div>
+                    </div>
+                    <div class="info-text">提示：参考线基于三庭五眼比例自动计算</div>
+                </div>
+            </div>
+
+            <!-- Transfer Mode Panel -->
+            <div id="transfer-panel" style="display: none;">
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fas fa-image"></i> 目标图片控制</div>
+                    <div class="tool-btn-row">
+                        <button id="target-undo-btn" class="tool-btn tool-btn-small">
+                            <i class="fas fa-undo"></i> 撤销
+                        </button>
+                        <button id="target-redo-btn" class="tool-btn tool-btn-small">
+                            <i class="fas fa-redo"></i> 重做
+                        </button>
+                    </div>
+                    <div class="tool-btn-row">
+                        <button id="target-clear-btn" class="tool-btn tool-btn-small">
+                            <i class="fas fa-eraser"></i> 清空所有点
+                        </button>
+                        <button id="target-reupload-btn" class="tool-btn tool-btn-small">
+                            <i class="fas fa-upload"></i> 重新上传
+                        </button>
+                    </div>
+                    <div class="info-text">提示：按住Alt键可拖拽调整点位</div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fas fa-images"></i> 源图片控制</div>
+                    <div class="tool-btn-row">
+                        <button id="source-undo-btn" class="tool-btn tool-btn-small">
+                            <i class="fas fa-undo"></i> 撤销
+                        </button>
+                        <button id="source-redo-btn" class="tool-btn tool-btn-small">
+                            <i class="fas fa-redo"></i> 重做
+                        </button>
+                    </div>
+                    <div class="tool-btn-row">
+                        <button id="source-clear-btn" class="tool-btn tool-btn-small">
+                            <i class="fas fa-eraser"></i> 清空所有点
+                        </button>
+                        <button id="source-reupload-btn" class="tool-btn tool-btn-small">
+                            <i class="fas fa-upload"></i> 重新上传
+                        </button>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fas fa-sliders-h"></i> 显示选项</div>
+                    <div class="toggle-container">
+                        <span>五眼参考线 (纵向)</span>
+                        <div class="toggle-switch" id="toggle-reflines-transfer"></div>
+                    </div>
+                    <div class="toggle-container">
+                        <span>三庭参考线 (水平)</span>
+                        <div class="toggle-switch" id="toggle-horizlines-transfer"></div>
+                    </div>
+                    <div class="toggle-container">
+                        <span>辅助参考线</span>
+                        <div class="toggle-switch" id="toggle-auxlines-transfer"></div>
+                    </div>
+                    <div class="toggle-container">
+                        <span>显示AI轮廓</span>
+                        <div class="toggle-switch" id="toggle-contour-transfer"></div>
+                    </div>
+                </div>
+
+                <div class="section-divider"></div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fas fa-play-circle"></i> 处理操作</div>
+                    <button id="process-btn" class="tool-btn primary">
+                        <i class="fas fa-play"></i> 开始处理
+                    </button>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fas fa-chart-bar"></i> 状态监控</div>
+                    <div class="status-card">
+                        <div class="status-label">目标图片点位</div>
+                        <div class="status-value" id="target-status">0 个点</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-label">源图片点位</div>
+                        <div class="status-value" id="source-status">0 个点</div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fas fa-info-circle"></i> 快速指南</div>
+                    <div class="instructions-mini">
+                        1. 使用AI识别自动检测特征点<br>
+                        2. <b>拖拽调整</b>或添加更多点位<br>
+                        3. 确保两图点位数量相同<br>
+                        4. 点击"开始处理"完成修复
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="workspace">
+            <div class="loading-overlay" id="loading">
+                <div class="spinner"></div>
+                <div id="loading-text">正在处理...</div>
+            </div>
+
+            <!-- Target Image Area -->
+            <div class="canvas-wrapper">
+                <div class="canvas-header">目标图片 (被遮挡)</div>
+                <div class="canvas-toolbar">
+                    <button class="canvas-tool-btn" id="target-ai-detect" title="AI智能识别">
+                        <i class="fas fa-robot"></i>
+                    </button>
+                    <button class="canvas-tool-btn" id="target-toggle-contour" title="显示/隐藏轮廓">
+                        <i class="fas fa-draw-polygon"></i>
+                    </button>
+                </div>
+                <div class="canvas-container" id="target-container">
+                    <label class="upload-trigger">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>点击上传目标图片</span>
+                        <input type="file" id="target-upload" accept="image/*">
+                    </label>
+                    <canvas id="target-canvas"></canvas>
+                </div>
+                <div class="legend">
+                    <div class="legend-item"><div class="legend-dot manual"></div>手动</div>
+                    <div class="legend-item"><div class="legend-dot inferred"></div>推算</div>
+                    <div class="legend-item"><div class="legend-dot ai"></div>AI识别</div>
+                    <div class="legend-item"><div class="legend-dot refline"></div>参考线</div>
+                </div>
+            </div>
+
+            <!-- Source Image Area -->
+            <div class="canvas-wrapper">
+                <div class="canvas-header">源图片 (素材模板)</div>
+                <div class="canvas-toolbar">
+                    <button class="canvas-tool-btn" id="source-ai-detect" title="AI智能识别">
+                        <i class="fas fa-robot"></i>
+                    </button>
+                    <button class="canvas-tool-btn" id="source-toggle-contour" title="显示/隐藏轮廓">
+                        <i class="fas fa-draw-polygon"></i>
+                    </button>
+                </div>
+                <div class="canvas-container" id="source-container">
+                    <label class="upload-trigger">
+                        <i class="fas fa-image"></i>
+                        <span>点击上传源图片</span>
+                        <input type="file" id="source-upload" accept="image/*">
+                    </label>
+                    <canvas id="source-canvas"></canvas>
+                </div>
+                <div class="legend">
+                    <div class="legend-item"><div class="legend-dot source"></div>对应点</div>
+                    <div class="legend-item"><div class="legend-dot ai"></div>AI识别</div>
+                    <div class="legend-item"><div class="legend-dot contour"></div>轮廓</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal" id="result-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">处理结果</div>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <img id="result-image" src="" alt="Result">
+            <div class="modal-footer">
+                <a id="download-link" href="#" download="face_fixed.png" class="tool-btn primary" style="text-decoration: none;">
+                    <i class="fas fa-download"></i> 下载图片
+                </a>
+                <button class="tool-btn" onclick="closeModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 全局状态管理 ====================
+        const state = {
+            mode: 'locate',  // 'locate' 或 'transfer'
+            targetImage: null,
+            sourceImage: null,
+            targetLandmarks: {},      // 命名特征点 {name: {x, y, type}}
+            sourceLandmarks: {},
+            targetPoints: [],         // 自由点 [{x, y}]
+            sourcePoints: [],
+            targetContour: [],
+            sourceContour: [],
+            targetBbox: null,
+            sourceBbox: null,
+            showRefLines: false,      // 五眼参考线
+            showHorizLines: false,    // 三庭参考线
+            showAuxLines: false,      // 辅助参考线
+            showContour: false,
+            targetHistory: [],
+            sourceHistory: [],
+            targetHistoryIndex: -1,
+            sourceHistoryIndex: -1,
+            // 拖拽状态
+            isDragging: false,
+            dragTarget: null,         // 'landmark' 或 'point'
+            dragCanvas: null,         // 'target' 或 'source'
+            dragPointName: null,
+            dragPointIndex: -1,
+            dragStartPos: null,
+            // 参考线缓存（清空标注后仍保持显示）
+            cachedFiveEyeLines: null,
+            cachedThreePartLines: null,
+            cachedAuxLines: null
+        };
+
+        // ==================== DOM 元素 ====================
+        const targetCanvas = document.getElementById('target-canvas');
+        const sourceCanvas = document.getElementById('source-canvas');
+        const targetCtx = targetCanvas.getContext('2d');
+        const sourceCtx = sourceCanvas.getContext('2d');
+        const targetContainer = document.getElementById('target-container');
+        const sourceContainer = document.getElementById('source-container');
+
+        // ==================== 三庭五眼参考线计算 ====================
+        
+        // 计算五眼纵向参考线
+        // 规则：L = 眼内角到中轴线的距离
+        // 五眼分布：中轴线两侧各有 L(内眼角), 3L(外眼角), 5L(耳朵)
+        function calculateFiveEyeLines(landmarks, canvasWidth) {
+            const lines = [];
+            const centerX = canvasWidth / 2;
+            
+            // 中轴线始终在图像正中
+            lines.push({ x: centerX, type: 'center', label: '中轴线' });
+            
+            // 尝试从眼角点计算L值
+            let L = null;
+            
+            // 优先使用内眼角计算 (L = 眼内角到中轴线的距离)
+            if (landmarks.left_inner_eye || landmarks.right_inner_eye) {
+                if (landmarks.left_inner_eye && landmarks.right_inner_eye) {
+                    // 两个内眼角都有，取中点计算
+                    const innerMidX = (landmarks.left_inner_eye.x + landmarks.right_inner_eye.x) / 2;
+                    L = Math.abs(landmarks.left_inner_eye.x - innerMidX);
+                } else if (landmarks.left_inner_eye) {
+                    // 只有左眼内角，假设中轴线在图像中心
+                    L = Math.abs(centerX - landmarks.left_inner_eye.x);
+                } else if (landmarks.right_inner_eye) {
+                    // 只有右眼内角，假设中轴线在图像中心
+                    L = Math.abs(landmarks.right_inner_eye.x - centerX);
+                }
+                
+                // 五眼分布：L(内眼角), 3L(外眼角), 5L(耳朵)
+                lines.push({ x: centerX - L, type: 'inner', label: '左内眼角线' });
+                lines.push({ x: centerX + L, type: 'inner', label: '右内眼角线' });
+                lines.push({ x: centerX - 3*L, type: 'outer', label: '左外眼角线' });
+                lines.push({ x: centerX + 3*L, type: 'outer', label: '右外眼角线' });
+                lines.push({ x: centerX - 5*L, type: 'ear', label: '左耳线' });
+                lines.push({ x: centerX + 5*L, type: 'ear', label: '右耳线' });
+            } 
+            // 使用外眼角计算 (外眼角在3L处)
+            else if (landmarks.left_outer_eye || landmarks.right_outer_eye) {
+                if (landmarks.left_outer_eye && landmarks.right_outer_eye) {
+                    const outerMidX = (landmarks.left_outer_eye.x + landmarks.right_outer_eye.x) / 2;
+                    L = Math.abs(landmarks.left_outer_eye.x - outerMidX) / 3;
+                } else if (landmarks.left_outer_eye) {
+                    L = Math.abs(centerX - landmarks.left_outer_eye.x) / 3;
+                } else if (landmarks.right_outer_eye) {
+                    L = Math.abs(landmarks.right_outer_eye.x - centerX) / 3;
+                }
+                
+                lines.push({ x: centerX - L, type: 'inner', label: '左内眼角线' });
+                lines.push({ x: centerX + L, type: 'inner', label: '右内眼角线' });
+                lines.push({ x: centerX - 3*L, type: 'outer', label: '左外眼角线' });
+                lines.push({ x: centerX + 3*L, type: 'outer', label: '右外眼角线' });
+                lines.push({ x: centerX - 5*L, type: 'ear', label: '左耳线' });
+                lines.push({ x: centerX + 5*L, type: 'ear', label: '右耳线' });
+            }
+            // 使用耳朵点计算 (耳朵在5L处)
+            else if (landmarks.left_ear || landmarks.right_ear) {
+                if (landmarks.left_ear && landmarks.right_ear) {
+                    const earMidX = (landmarks.left_ear.x + landmarks.right_ear.x) / 2;
+                    L = Math.abs(landmarks.left_ear.x - earMidX) / 5;
+                } else if (landmarks.left_ear) {
+                    L = Math.abs(centerX - landmarks.left_ear.x) / 5;
+                } else if (landmarks.right_ear) {
+                    L = Math.abs(landmarks.right_ear.x - centerX) / 5;
+                }
+                
+                lines.push({ x: centerX - L, type: 'inner', label: '左内眼角线' });
+                lines.push({ x: centerX + L, type: 'inner', label: '右内眼角线' });
+                lines.push({ x: centerX - 3*L, type: 'outer', label: '左外眼角线' });
+                lines.push({ x: centerX + 3*L, type: 'outer', label: '右外眼角线' });
+                lines.push({ x: centerX - 5*L, type: 'ear', label: '左耳线' });
+                lines.push({ x: centerX + 5*L, type: 'ear', label: '右耳线' });
+            }
+            
+            return { lines, L };
+        }
+        
+        // 计算三庭水平参考线
+        // 规则（五点从上到下的高度关系，设h为基本单位）：
+        // - 眉心 = 0h
+        // - 内眼角 = 1h（眉心往下1h）
+        // - 鼻底 = 3h（眉心往下3h，即内眼角往下2h）
+        // - 唇中 = 4h（眉心往下4h，即鼻底往下1h）
+        // - 下颌底 = 6h（眉心往下6h，即唇中往下2h）
+        // 只要知道任意两点，即可推算出h值，进而推算所有其他点
+        function calculateThreePartLines(landmarks, canvasHeight) {
+            const lines = [];
+            
+            // 收集已标记的垂直点位及其h系数
+            // 眉心=0h, 内眼角=1h, 鼻底=3h, 唇中=4h, 下颌底=6h
+            const points = [];
+            if (landmarks.eyebrow_center) {
+                points.push({ y: landmarks.eyebrow_center.y, coef: 0, name: '眉心', marked: true });
+            }
+            if (landmarks.left_inner_eye || landmarks.right_inner_eye) {
+                let eyeY;
+                if (landmarks.left_inner_eye && landmarks.right_inner_eye) {
+                    eyeY = (landmarks.left_inner_eye.y + landmarks.right_inner_eye.y) / 2;
+                } else if (landmarks.left_inner_eye) {
+                    eyeY = landmarks.left_inner_eye.y;
+                } else {
+                    eyeY = landmarks.right_inner_eye.y;
+                }
+                points.push({ y: eyeY, coef: 1, name: '内眼角', marked: true });
+            }
+            if (landmarks.nose_bottom) {
+                points.push({ y: landmarks.nose_bottom.y, coef: 3, name: '鼻底', marked: true });
+            }
+            if (landmarks.lip_center) {
+                points.push({ y: landmarks.lip_center.y, coef: 4, name: '唇中', marked: true });
+            }
+            if (landmarks.chin_bottom) {
+                points.push({ y: landmarks.chin_bottom.y, coef: 6, name: '下颌底', marked: true });
+            }
+            
+            // 如果少于2个点，无法计算
+            if (points.length < 2) {
+                // 仍然显示已标记的点
+                points.forEach(pt => {
+                    lines.push({ y: pt.y, type: 'marked', label: pt.name });
+                });
+                return lines;
+            }
+            
+            // 使用任意两点计算h值
+            // y2 - y1 = (coef2 - coef1) * h => h = (y2 - y1) / (coef2 - coef1)
+            const pt1 = points[0];
+            const pt2 = points[1];
+            const h = (pt2.y - pt1.y) / (pt2.coef - pt1.coef);
+            
+            // 计算基准点（眉心位置，coef=0）
+            const eyebrowY = pt1.y - pt1.coef * h;
+            
+            // 推算所有五个点的位置
+            const allPoints = [
+                { coef: 0, name: '眉心' },
+                { coef: 1, name: '内眼角' },
+                { coef: 3, name: '鼻底' },
+                { coef: 4, name: '唇中' },
+                { coef: 6, name: '下颌底' }
+            ];
+            
+            // 检查哪些点已被标记
+            const markedCoefs = new Set(points.map(p => p.coef));
+            
+            allPoints.forEach(pt => {
+                const y = eyebrowY + pt.coef * h;
+                const isMarked = markedCoefs.has(pt.coef);
+                lines.push({
+                    y: y,
+                    type: isMarked ? 'marked' : 'inferred',
+                    label: isMarked ? pt.name : pt.name + '(推算)'
+                });
+            });
+            
+            // 添加上庭顶参考线（眉心往上3h，与中庭等高）
+            if (landmarks.forehead_top) {
+                lines.push({ y: landmarks.forehead_top.y, type: 'marked', label: '上庭顶' });
+            } else {
+                const foreheadY = eyebrowY - 3 * h;
+                lines.push({ y: foreheadY, type: 'inferred', label: '上庭顶(推算)' });
+            }
+            
+            return lines;
+        }
+        
+        // 计算辅助参考线（用于推算嘴角、上唇顶、下颌点等）
+        // 辅助线1：过眉心、左鼻翼
+        // 辅助线2：过眉心、右鼻翼
+        // 辅助线3：过左耳点、左鼻翼
+        // 辅助线4：过右耳点、右鼻翼
+        function calculateAuxiliaryLines(landmarks) {
+            const lines = [];
+            
+            // 辅助线1：眉心-左鼻翼（用于推算左嘴角、下颌左点）
+            if (landmarks.eyebrow_center && landmarks.left_nose_wing) {
+                lines.push({
+                    from: landmarks.eyebrow_center,
+                    to: landmarks.left_nose_wing,
+                    label: '辅助线1',
+                    id: 'aux1'
+                });
+            }
+            
+            // 辅助线2：眉心-右鼻翼（用于推算右嘴角、下颌右点）
+            if (landmarks.eyebrow_center && landmarks.right_nose_wing) {
+                lines.push({
+                    from: landmarks.eyebrow_center,
+                    to: landmarks.right_nose_wing,
+                    label: '辅助线2',
+                    id: 'aux2'
+                });
+            }
+            
+            // 辅助线3：左耳点-左鼻翼（用于推算上唇顶、下颌右点）
+            if (landmarks.left_ear && landmarks.left_nose_wing) {
+                lines.push({
+                    from: landmarks.left_ear,
+                    to: landmarks.left_nose_wing,
+                    label: '辅助线3',
+                    id: 'aux3'
+                });
+            }
+            
+            // 辅助线4：右耳点-右鼻翼（用于推算上唇顶、下颌左点）
+            if (landmarks.right_ear && landmarks.right_nose_wing) {
+                lines.push({
+                    from: landmarks.right_ear,
+                    to: landmarks.right_nose_wing,
+                    label: '辅助线4',
+                    id: 'aux4'
+                });
+            }
+            
+            return lines;
+        }
+        
+        // 将直线延长到画布边界
+        // 给定两点，计算直线与画布四条边的交点，返回画布内的两个端点
+        function extendLineToCanvasBounds(from, to, canvasWidth, canvasHeight) {
+            // 计算直线方程: (y - y1) / (y2 - y1) = (x - x1) / (x2 - x1)
+            const dx = to.x - from.x;
+            const dy = to.y - from.y;
+            
+            // 避免除零
+            if (Math.abs(dx) < 0.0001 && Math.abs(dy) < 0.0001) {
+                return null;
+            }
+            
+            const intersections = [];
+            
+            // 与左边界 (x = 0) 的交点
+            if (Math.abs(dx) > 0.0001) {
+                const t = (0 - from.x) / dx;
+                const y = from.y + t * dy;
+                if (y >= 0 && y <= canvasHeight) {
+                    intersections.push({ x: 0, y: y, t: t });
+                }
+            }
+            
+            // 与右边界 (x = canvasWidth) 的交点
+            if (Math.abs(dx) > 0.0001) {
+                const t = (canvasWidth - from.x) / dx;
+                const y = from.y + t * dy;
+                if (y >= 0 && y <= canvasHeight) {
+                    intersections.push({ x: canvasWidth, y: y, t: t });
+                }
+            }
+            
+            // 与上边界 (y = 0) 的交点
+            if (Math.abs(dy) > 0.0001) {
+                const t = (0 - from.y) / dy;
+                const x = from.x + t * dx;
+                if (x >= 0 && x <= canvasWidth) {
+                    intersections.push({ x: x, y: 0, t: t });
+                }
+            }
+            
+            // 与下边界 (y = canvasHeight) 的交点
+            if (Math.abs(dy) > 0.0001) {
+                const t = (canvasHeight - from.y) / dy;
+                const x = from.x + t * dx;
+                if (x >= 0 && x <= canvasWidth) {
+                    intersections.push({ x: x, y: canvasHeight, t: t });
+                }
+            }
+            
+            // 去重并按 t 值排序
+            const uniqueIntersections = [];
+            intersections.forEach(pt => {
+                const exists = uniqueIntersections.some(existing => 
+                    Math.abs(existing.x - pt.x) < 1 && Math.abs(existing.y - pt.y) < 1
+                );
+                if (!exists) {
+                    uniqueIntersections.push(pt);
+                }
+            });
+            
+            uniqueIntersections.sort((a, b) => a.t - b.t);
+            
+            if (uniqueIntersections.length >= 2) {
+                return {
+                    from: { x: uniqueIntersections[0].x, y: uniqueIntersections[0].y },
+                    to: { x: uniqueIntersections[uniqueIntersections.length - 1].x, y: uniqueIntersections[uniqueIntersections.length - 1].y }
+                };
+            }
+            
+            return null;
+        }
+
+        // ==================== 绘制函数 ====================
+        
+        // 绘制五眼参考线（带缓存功能）
+        function drawFiveEyeLines(ctx, width, height, landmarks, useCache = false) {
+            let result = calculateFiveEyeLines(landmarks, width);
+            
+            // 如果计算出了有效的参考线（超过中轴线），则缓存
+            if (result.lines.length > 1) {
+                state.cachedFiveEyeLines = { ...result, width };
+            } 
+            // 如果没有有效点但有缓存，使用缓存（清空标注后保持显示）
+            else if (useCache && state.cachedFiveEyeLines && state.cachedFiveEyeLines.width === width) {
+                result = state.cachedFiveEyeLines;
+            }
+            
+            if (result.lines.length === 0) return;
+            
+            ctx.save();
+            ctx.setLineDash([5, 5]);
+            
+            result.lines.forEach(line => {
+                if (line.type === 'center') {
+                    ctx.strokeStyle = '#ff5722';
+                    ctx.lineWidth = 2;
+                } else if (line.type === 'inner') {
+                    ctx.strokeStyle = '#00bcd4';
+                    ctx.lineWidth = 1.5;
+                } else if (line.type === 'outer') {
+                    ctx.strokeStyle = '#4caf50';
+                    ctx.lineWidth = 1.5;
+                } else {
+                    ctx.strokeStyle = '#9c27b0';
+                    ctx.lineWidth = 1;
+                }
+                
+                ctx.beginPath();
+                ctx.moveTo(line.x, 0);
+                ctx.lineTo(line.x, height);
+                ctx.stroke();
+                
+                // 绘制标签
+                ctx.fillStyle = ctx.strokeStyle;
+                ctx.font = '10px sans-serif';
+                ctx.fillText(line.label, line.x + 3, 15);
+            });
+            
+            ctx.restore();
+        }
+        
+        // 绘制三庭参考线（带缓存功能）
+        function drawThreePartLines(ctx, width, height, landmarks, useCache = false) {
+            let lines = calculateThreePartLines(landmarks, height);
+            
+            // 如果计算出了有效的参考线，则缓存
+            if (lines.length > 0) {
+                state.cachedThreePartLines = { lines, height };
+            }
+            // 如果没有有效点但有缓存，使用缓存
+            else if (useCache && state.cachedThreePartLines && state.cachedThreePartLines.height === height) {
+                lines = state.cachedThreePartLines.lines;
+            }
+            
+            if (lines.length === 0) return;
+            
+            ctx.save();
+            ctx.setLineDash([8, 4]);
+            
+            lines.forEach(line => {
+                if (line.type === 'marked') {
+                    ctx.strokeStyle = '#e91e63';
+                    ctx.lineWidth = 1.5;
+                } else {
+                    ctx.strokeStyle = '#ff9800';
+                    ctx.lineWidth = 1;
+                }
+                
+                ctx.beginPath();
+                ctx.moveTo(0, line.y);
+                ctx.lineTo(width, line.y);
+                ctx.stroke();
+                
+                // 绘制标签
+                ctx.fillStyle = ctx.strokeStyle;
+                ctx.font = '10px sans-serif';
+                ctx.fillText(line.label, 5, line.y - 3);
+            });
+            
+            ctx.restore();
+        }
+        
+        // 绘制辅助参考线（带缓存功能，延长到画布边界）
+        function drawAuxiliaryLines(ctx, landmarks, canvasWidth, canvasHeight, useCache = false) {
+            let lines = calculateAuxiliaryLines(landmarks);
+            
+            // 如果计算出了有效的参考线，则缓存
+            if (lines.length > 0) {
+                state.cachedAuxLines = lines;
+            }
+            // 如果没有有效点但有缓存，使用缓存
+            else if (useCache && state.cachedAuxLines) {
+                lines = state.cachedAuxLines;
+            }
+            
+            if (lines.length === 0) return;
+            
+            ctx.save();
+            ctx.setLineDash([3, 3]);
+            ctx.lineWidth = 1;
+            
+            // 辅助线颜色
+            const colors = {
+                'aux1': '#ff9800',  // 橙色
+                'aux2': '#ff5722',  // 深橙色
+                'aux3': '#4caf50',  // 绿色
+                'aux4': '#2196f3'   // 蓝色
+            };
+            
+            lines.forEach(line => {
+                // 延长直线到画布边界
+                const extended = extendLineToCanvasBounds(line.from, line.to, canvasWidth, canvasHeight);
+                if (extended) {
+                    ctx.strokeStyle = colors[line.id] || '#ff9800';
+                    ctx.beginPath();
+                    ctx.moveTo(extended.from.x, extended.from.y);
+                    ctx.lineTo(extended.to.x, extended.to.y);
+                    ctx.stroke();
+                    
+                    // 绘制标签（在线条中点附近）
+                    const midX = (extended.from.x + extended.to.x) / 2;
+                    const midY = (extended.from.y + extended.to.y) / 2;
+                    ctx.fillStyle = colors[line.id] || '#ff9800';
+                    ctx.font = '10px sans-serif';
+                    ctx.fillText(line.label, midX + 5, midY - 5);
+                }
+            });
+            
+            ctx.restore();
+        }
+        
+        function drawCanvas(canvas, ctx, image, landmarks, points, contour, isTarget = true) {
+            if (!image) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                return;
+            }
+            
+            // 绘制图片
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+            
+            // 绘制参考线（在点位之前绘制，作为背景）
+            // 使用统一的状态控制，两个画布都可以显示参考线
+            // 传入 useCache=true 使得清空标注后参考线仍保持显示
+            if (state.showRefLines) {
+                drawFiveEyeLines(ctx, canvas.width, canvas.height, landmarks, true);
+            }
+            if (state.showHorizLines) {
+                drawThreePartLines(ctx, canvas.width, canvas.height, landmarks, true);
+            }
+            if (state.showAuxLines) {
+                drawAuxiliaryLines(ctx, landmarks, canvas.width, canvas.height, true);
+            }
+            
+            // 绘制轮廓
+            if (state.showContour && contour && contour.length > 0) {
+                ctx.strokeStyle = '#3498db';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                contour.forEach((pt, i) => {
+                    if (i === 0) ctx.moveTo(pt[0], pt[1]);
+                    else ctx.lineTo(pt[0], pt[1]);
+                });
+                ctx.closePath();
+                ctx.stroke();
+            }
+            
+            // 绘制命名特征点（带序号）
+            let pointIndex = 1;
+            Object.entries(landmarks).forEach(([name, pt]) => {
+                let color;
+                if (pt.type === 'manual') color = '#ff4757';
+                else if (pt.type === 'inferred') color = '#ffa500';
+                else if (pt.type === 'ai') color = '#9b59b6';
+                else color = isTarget ? '#ff4757' : '#2ed573';
+                
+                // 绘制点
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 绘制序号（在点内部）
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 9px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(pointIndex.toString(), pt.x, pt.y);
+                
+                // 绘制标签（在点旁边）
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'alphabetic';
+                ctx.font = '10px sans-serif';
+                const label = getPointLabel(name);
+                ctx.fillText(label, pt.x + 10, pt.y - 8);
+                
+                pointIndex++;
+            });
+            
+            // 绘制自由点（序号接续）
+            points.forEach((pt, i) => {
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
+                ctx.fillStyle = isTarget ? '#ff4757' : '#2ed573';
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                
+                // 绘制序号
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 8px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText((pointIndex + i).toString(), pt.x, pt.y);
+            });
+        }
+        
+        function getPointLabel(name) {
+            const labels = {
+                'left_inner_eye': '左内眼',
+                'right_inner_eye': '右内眼',
+                'left_outer_eye': '左外眼',
+                'right_outer_eye': '右外眼',
+                'forehead_top': '上庭顶',
+                'eyebrow_center': '眉心',
+                'nose_bottom': '鼻底',
+                'lip_center': '唇中',
+                'chin_bottom': '下颌底',
+                'left_ear': '左耳',
+                'right_ear': '右耳',
+                'left_nose_wing': '左鼻翼',
+                'right_nose_wing': '右鼻翼',
+                'left_mouth_corner': '左嘴角',
+                'right_mouth_corner': '右嘴角',
+                'upper_lip_top': '上唇顶',
+                'chin_left': '下颌左',
+                'chin_right': '下颌右'
+            };
+            return labels[name] || name;
+        }
+        
+        // 计算两条直线的交点
+        // line1, line2 格式: {from: {x, y}, to: {x, y}}
+        function lineIntersection(line1, line2) {
+            const x1 = line1.from.x, y1 = line1.from.y;
+            const x2 = line1.to.x, y2 = line1.to.y;
+            const x3 = line2.from.x, y3 = line2.from.y;
+            const x4 = line2.to.x, y4 = line2.to.y;
+            
+            const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+            if (Math.abs(denom) < 0.0001) return null; // 平行线
+            
+            const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+            return {
+                x: x1 + t * (x2 - x1),
+                y: y1 + t * (y2 - y1)
+            };
+        }
+        
+        // 创建垂直线（用于五眼参考线与水平线的交点计算）
+        function createVerticalLine(x, canvasHeight) {
+            return { from: { x: x, y: 0 }, to: { x: x, y: canvasHeight } };
+        }
+        
+        // 创建水平线（用于三庭参考线与垂直线的交点计算）
+        function createHorizontalLine(y, canvasWidth) {
+            return { from: { x: 0, y: y }, to: { x: canvasWidth, y: y } };
+        }
+        
+        function updateTargetCanvas() {
+            drawCanvas(targetCanvas, targetCtx, state.targetImage, 
+                      state.targetLandmarks, state.targetPoints, 
+                      state.targetContour, true);
+        }
+        
+        function updateSourceCanvas() {
+            drawCanvas(sourceCanvas, sourceCtx, state.sourceImage, 
+                      state.sourceLandmarks, state.sourcePoints, 
+                      state.sourceContour, false);
+        }
+        
+        function updateLandmarkGrid() {
+            document.querySelectorAll('.landmark-btn').forEach(btn => {
+                const point = btn.dataset.point;
+                btn.classList.remove('marked', 'inferred', 'ai-detected', 'active');
+                
+                if (state.targetLandmarks[point]) {
+                    const type = state.targetLandmarks[point].type;
+                    if (type === 'ai') btn.classList.add('ai-detected');
+                    else if (type === 'inferred') btn.classList.add('inferred');
+                    else btn.classList.add('marked');
+                }
+                
+                if (document.getElementById('landmark-type').value === point) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        function updateStatus() {
+            const targetCount = Object.keys(state.targetLandmarks).length + state.targetPoints.length;
+            const sourceCount = Object.keys(state.sourceLandmarks).length + state.sourcePoints.length;
+            document.getElementById('target-status').textContent = `${targetCount} 个点`;
+            document.getElementById('source-status').textContent = `${sourceCount} 个点`;
+        }
+
+        // ==================== 拖拽功能 ====================
+        
+        function getMousePos(canvas, evt) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (evt.clientX - rect.left) * scaleX,
+                y: (evt.clientY - rect.top) * scaleY
+            };
+        }
+        
+        function findNearestPoint(pos, landmarks, points, threshold = 15) {
+            let minDist = threshold;
+            let result = null;
+            
+            // 检查命名特征点
+            Object.entries(landmarks).forEach(([name, pt]) => {
+                const dist = Math.hypot(pt.x - pos.x, pt.y - pos.y);
+                if (dist < minDist) {
+                    minDist = dist;
+                    result = { type: 'landmark', name: name, point: pt };
+                }
+            });
+            
+            // 检查自由点
+            points.forEach((pt, i) => {
+                const dist = Math.hypot(pt.x - pos.x, pt.y - pos.y);
+                if (dist < minDist) {
+                    minDist = dist;
+                    result = { type: 'point', index: i, point: pt };
+                }
+            });
+            
+            return result;
+        }
+        
+        function handleMouseDown(evt, canvasType) {
+            const canvas = canvasType === 'target' ? targetCanvas : sourceCanvas;
+            const landmarks = canvasType === 'target' ? state.targetLandmarks : state.sourceLandmarks;
+            const points = canvasType === 'target' ? state.targetPoints : state.sourcePoints;
+            
+            const pos = getMousePos(canvas, evt);
+            
+            // 只有按住Alt键时才能拖拽现有点
+            if (evt.altKey) {
+                const nearest = findNearestPoint(pos, landmarks, points);
+                if (nearest) {
+                    // 开始拖拽
+                    state.isDragging = true;
+                    state.dragCanvas = canvasType;
+                    state.dragTarget = nearest.type;
+                    state.dragPointName = nearest.name || null;
+                    state.dragPointIndex = nearest.index !== undefined ? nearest.index : -1;
+                    state.dragStartPos = pos;
+                    
+                    canvas.classList.add('dragging');
+                    evt.preventDefault();
+                    return;
+                }
+            }
+            
+            // 不按Alt键时，任意位置都可以标注新点
+            if (state.mode === 'locate' && canvasType === 'target') {
+                // 添加新的特征点
+                const pointType = document.getElementById('landmark-type').value;
+                saveHistory('target');
+                state.targetLandmarks[pointType] = { x: pos.x, y: pos.y, type: 'manual' };
+                updateTargetCanvas();
+                updateLandmarkGrid();
+                updateStatus();
+            } else if (state.mode === 'transfer') {
+                // 迁移模式：添加自由点
+                if (canvasType === 'target') {
+                    saveHistory('target');
+                    state.targetPoints.push({ x: pos.x, y: pos.y });
+                    updateTargetCanvas();
+                } else {
+                    saveHistory('source');
+                    state.sourcePoints.push({ x: pos.x, y: pos.y });
+                    updateSourceCanvas();
+                }
+                updateStatus();
+            }
+        }
+        
+        function handleMouseMove(evt, canvasType) {
+            const canvas = canvasType === 'target' ? targetCanvas : sourceCanvas;
+            const landmarks = canvasType === 'target' ? state.targetLandmarks : state.sourceLandmarks;
+            const points = canvasType === 'target' ? state.targetPoints : state.sourcePoints;
+            
+            const pos = getMousePos(canvas, evt);
+            
+            if (state.isDragging && state.dragCanvas === canvasType) {
+                // 更新拖拽中的点位置
+                if (state.dragTarget === 'landmark') {
+                    landmarks[state.dragPointName].x = pos.x;
+                    landmarks[state.dragPointName].y = pos.y;
+                    // 将被拖拽的点标记为手动类型（不再是推算点）
+                    landmarks[state.dragPointName].type = 'manual';
+                } else if (state.dragTarget === 'point') {
+                    points[state.dragPointIndex].x = pos.x;
+                    points[state.dragPointIndex].y = pos.y;
+                }
+                
+                // 如果是目标画布且拖拽的是命名特征点，实时更新推算点
+                if (canvasType === 'target' && state.dragTarget === 'landmark') {
+                    updateInferredPoints();
+                }
+                
+                if (canvasType === 'target') {
+                    updateTargetCanvas();
+                } else {
+                    updateSourceCanvas();
+                }
+            } else {
+                // 更新鼠标样式 - 只有按住Alt键且靠近点时才显示抓手
+                const nearest = findNearestPoint(pos, landmarks, points);
+                if (evt.altKey && nearest) {
+                    canvas.classList.add('can-drag');
+                    canvas.classList.remove('crosshair');
+                } else {
+                    canvas.classList.remove('can-drag');
+                    if (state.mode === 'locate' && canvasType === 'target') {
+                        canvas.classList.add('crosshair');
+                    } else if (state.mode === 'transfer') {
+                        canvas.classList.add('crosshair');
+                    }
+                }
+            }
+        }
+        
+        function handleMouseUp(evt, canvasType) {
+            const canvas = canvasType === 'target' ? targetCanvas : sourceCanvas;
+            
+            if (state.isDragging && state.dragCanvas === canvasType) {
+                // 保存拖拽结果到历史
+                saveHistory(canvasType);
+                
+                state.isDragging = false;
+                state.dragCanvas = null;
+                state.dragTarget = null;
+                state.dragPointName = null;
+                state.dragPointIndex = -1;
+                
+                canvas.classList.remove('dragging');
+            }
+        }
+        
+        // 绑定鼠标事件
+        targetCanvas.addEventListener('mousedown', (e) => handleMouseDown(e, 'target'));
+        targetCanvas.addEventListener('mousemove', (e) => handleMouseMove(e, 'target'));
+        targetCanvas.addEventListener('mouseup', (e) => handleMouseUp(e, 'target'));
+        targetCanvas.addEventListener('mouseleave', (e) => handleMouseUp(e, 'target'));
+        
+        sourceCanvas.addEventListener('mousedown', (e) => handleMouseDown(e, 'source'));
+        sourceCanvas.addEventListener('mousemove', (e) => handleMouseMove(e, 'source'));
+        sourceCanvas.addEventListener('mouseup', (e) => handleMouseUp(e, 'source'));
+        sourceCanvas.addEventListener('mouseleave', (e) => handleMouseUp(e, 'source'));
+
+        // ==================== 历史记录 ====================
+        
+        function saveHistory(target) {
+            if (target === 'target') {
+                state.targetHistory = state.targetHistory.slice(0, state.targetHistoryIndex + 1);
+                state.targetHistory.push({
+                    landmarks: JSON.parse(JSON.stringify(state.targetLandmarks)),
+                    points: JSON.parse(JSON.stringify(state.targetPoints))
+                });
+                state.targetHistoryIndex = state.targetHistory.length - 1;
+            } else {
+                state.sourceHistory = state.sourceHistory.slice(0, state.sourceHistoryIndex + 1);
+                state.sourceHistory.push({
+                    landmarks: JSON.parse(JSON.stringify(state.sourceLandmarks)),
+                    points: JSON.parse(JSON.stringify(state.sourcePoints))
+                });
+                state.sourceHistoryIndex = state.sourceHistory.length - 1;
+            }
+        }
+        
+        function undo(target) {
+            if (target === 'target' && state.targetHistoryIndex > 0) {
+                state.targetHistoryIndex--;
+                const hist = state.targetHistory[state.targetHistoryIndex];
+                state.targetLandmarks = JSON.parse(JSON.stringify(hist.landmarks));
+                state.targetPoints = JSON.parse(JSON.stringify(hist.points));
+                updateTargetCanvas();
+                updateLandmarkGrid();
+                updateStatus();
+            } else if (target === 'source' && state.sourceHistoryIndex > 0) {
+                state.sourceHistoryIndex--;
+                const hist = state.sourceHistory[state.sourceHistoryIndex];
+                state.sourceLandmarks = JSON.parse(JSON.stringify(hist.landmarks));
+                state.sourcePoints = JSON.parse(JSON.stringify(hist.points));
+                updateSourceCanvas();
+                updateStatus();
+            }
+        }
+        
+        function redo(target) {
+            if (target === 'target' && state.targetHistoryIndex < state.targetHistory.length - 1) {
+                state.targetHistoryIndex++;
+                const hist = state.targetHistory[state.targetHistoryIndex];
+                state.targetLandmarks = JSON.parse(JSON.stringify(hist.landmarks));
+                state.targetPoints = JSON.parse(JSON.stringify(hist.points));
+                updateTargetCanvas();
+                updateLandmarkGrid();
+                updateStatus();
+            } else if (target === 'source' && state.sourceHistoryIndex < state.sourceHistory.length - 1) {
+                state.sourceHistoryIndex++;
+                const hist = state.sourceHistory[state.sourceHistoryIndex];
+                state.sourceLandmarks = JSON.parse(JSON.stringify(hist.landmarks));
+                state.sourcePoints = JSON.parse(JSON.stringify(hist.points));
+                updateSourceCanvas();
+                updateStatus();
+            }
+        }
+
+        // ==================== 图片上传 ====================
+        
+        function loadImage(file, target) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = target === 'target' ? targetCanvas : sourceCanvas;
+                        const container = target === 'target' ? targetContainer : sourceContainer;
+                        
+                        // 使用原始图片尺寸（不压缩）
+                        const origW = img.width;
+                        const origH = img.height;
+                        
+                        // 设置canvas为原始尺寸
+                        canvas.width = origW;
+                        canvas.height = origH;
+                        
+                        // 计算显示尺寸（仅用于CSS显示，不影响实际分辨率）
+                        const maxW = container.clientWidth - 40;
+                        const maxH = window.innerHeight * 0.6;
+                        let displayW = origW, displayH = origH;
+                        
+                        if (displayW > maxW) { displayH = displayH * maxW / displayW; displayW = maxW; }
+                        if (displayH > maxH) { displayW = displayW * maxH / displayH; displayH = maxH; }
+                        
+                        // 使用CSS控制显示尺寸
+                        canvas.style.width = displayW + 'px';
+                        canvas.style.height = displayH + 'px';
+                        
+                        // 保存缩放比例用于坐标转换
+                        const displayScale = origW / displayW;
+                        
+                        if (target === 'target') {
+                            state.targetImage = img;
+                            state.targetDisplayScale = displayScale;
+                            state.targetLandmarks = {};
+                            state.targetPoints = [];
+                            state.targetContour = [];
+                            state.targetHistory = [{ landmarks: {}, points: [] }];
+                            state.targetHistoryIndex = 0;
+                            updateTargetCanvas();
+                            targetContainer.classList.add('has-image');
+                        } else {
+                            state.sourceImage = img;
+                            state.sourceDisplayScale = displayScale;
+                            state.sourceLandmarks = {};
+                            state.sourcePoints = [];
+                            state.sourceContour = [];
+                            state.sourceHistory = [{ landmarks: {}, points: [] }];
+                            state.sourceHistoryIndex = 0;
+                            updateSourceCanvas();
+                            sourceContainer.classList.add('has-image');
+                        }
+                        
+                        updateLandmarkGrid();
+                        updateStatus();
+                        resolve(img);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        document.getElementById('target-upload').addEventListener('change', (e) => {
+            if (e.target.files[0]) loadImage(e.target.files[0], 'target');
+        });
+        
+        document.getElementById('source-upload').addEventListener('change', (e) => {
+            if (e.target.files[0]) loadImage(e.target.files[0], 'source');
+        });
+
+        // ==================== 模式切换 ====================
+        
+        document.getElementById('mode-locate').addEventListener('click', () => {
+            state.mode = 'locate';
+            document.getElementById('mode-locate').classList.add('active');
+            document.getElementById('mode-transfer').classList.remove('active');
+            document.getElementById('locate-panel').style.display = 'block';
+            document.getElementById('transfer-panel').style.display = 'none';
+        });
+        
+        document.getElementById('mode-transfer').addEventListener('click', () => {
+            state.mode = 'transfer';
+            document.getElementById('mode-transfer').classList.add('active');
+            document.getElementById('mode-locate').classList.remove('active');
+            document.getElementById('transfer-panel').style.display = 'block';
+            document.getElementById('locate-panel').style.display = 'none';
+        });
+
+        // ==================== 显示选项切换 ====================
+        
+        document.getElementById('toggle-reflines').addEventListener('click', function() {
+            this.classList.toggle('active');
+            state.showRefLines = this.classList.contains('active');
+            updateTargetCanvas();
+        });
+        
+        document.getElementById('toggle-horizlines').addEventListener('click', function() {
+            this.classList.toggle('active');
+            state.showHorizLines = this.classList.contains('active');
+            updateTargetCanvas();
+        });
+        
+        document.getElementById('toggle-auxlines').addEventListener('click', function() {
+            this.classList.toggle('active');
+            state.showAuxLines = this.classList.contains('active');
+            updateTargetCanvas();
+        });
+        
+        document.getElementById('toggle-contour').addEventListener('click', function() {
+            this.classList.toggle('active');
+            state.showContour = this.classList.contains('active');
+            updateTargetCanvas();
+            updateSourceCanvas();
+        });
+        
+        document.getElementById('target-toggle-contour').addEventListener('click', function() {
+            this.classList.toggle('active');
+            state.showContour = this.classList.contains('active');
+            document.getElementById('toggle-contour').classList.toggle('active', state.showContour);
+            updateTargetCanvas();
+            updateSourceCanvas();
+        });
+        
+        document.getElementById('source-toggle-contour').addEventListener('click', function() {
+            this.classList.toggle('active');
+            state.showContour = this.classList.contains('active');
+            document.getElementById('toggle-contour').classList.toggle('active', state.showContour);
+            updateTargetCanvas();
+            updateSourceCanvas();
+        });
+
+        // ==================== 迁移模式显示选项切换 ====================
+        
+        document.getElementById('toggle-reflines-transfer').addEventListener('click', function() {
+            this.classList.toggle('active');
+            state.showRefLines = this.classList.contains('active');
+            // 同步定位模式的toggle状态
+            document.getElementById('toggle-reflines').classList.toggle('active', state.showRefLines);
+            updateTargetCanvas();
+            updateSourceCanvas();
+        });
+        
+        document.getElementById('toggle-horizlines-transfer').addEventListener('click', function() {
+            this.classList.toggle('active');
+            state.showHorizLines = this.classList.contains('active');
+            document.getElementById('toggle-horizlines').classList.toggle('active', state.showHorizLines);
+            updateTargetCanvas();
+            updateSourceCanvas();
+        });
+        
+        document.getElementById('toggle-auxlines-transfer').addEventListener('click', function() {
+            this.classList.toggle('active');
+            state.showAuxLines = this.classList.contains('active');
+            document.getElementById('toggle-auxlines').classList.toggle('active', state.showAuxLines);
+            updateTargetCanvas();
+            updateSourceCanvas();
+        });
+        
+        document.getElementById('toggle-contour-transfer').addEventListener('click', function() {
+            this.classList.toggle('active');
+            state.showContour = this.classList.contains('active');
+            document.getElementById('toggle-contour').classList.toggle('active', state.showContour);
+            updateTargetCanvas();
+            updateSourceCanvas();
+        });
+
+        // ==================== 特征点类型选择 ====================
+        
+        document.getElementById('landmark-type').addEventListener('change', updateLandmarkGrid);
+        
+        document.querySelectorAll('.landmark-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const point = btn.dataset.point;
+                document.getElementById('landmark-type').value = point;
+                updateLandmarkGrid();
+            });
+        });
+
+        // ==================== 实时更新推算点 ====================
+        
+        // 当拖拽手动标注的点时，实时更新所有推算点的位置
+        function updateInferredPoints() {
+            const lm = state.targetLandmarks;
+            const centerX = targetCanvas.width / 2;
+            const canvasWidth = targetCanvas.width;
+            const canvasHeight = targetCanvas.height;
+            
+            // 计算五眼参考线数据（获取L值）
+            const fiveEyeData = calculateFiveEyeLines(lm, canvasWidth);
+            let L = fiveEyeData.L;
+            
+            // 收集手动/AI标注的垂直点位（非推算点）
+            let eyeY = null;
+            if (lm.left_inner_eye && lm.left_inner_eye.type !== 'inferred') {
+                eyeY = lm.left_inner_eye.y;
+            }
+            if (lm.right_inner_eye && lm.right_inner_eye.type !== 'inferred') {
+                eyeY = eyeY !== null ? (eyeY + lm.right_inner_eye.y) / 2 : lm.right_inner_eye.y;
+            }
+            
+            let eyebrowY = (lm.eyebrow_center && lm.eyebrow_center.type !== 'inferred') ? lm.eyebrow_center.y : null;
+            let noseY = (lm.nose_bottom && lm.nose_bottom.type !== 'inferred') ? lm.nose_bottom.y : null;
+            let lipY = (lm.lip_center && lm.lip_center.type !== 'inferred') ? lm.lip_center.y : null;
+            let chinY = (lm.chin_bottom && lm.chin_bottom.type !== 'inferred') ? lm.chin_bottom.y : null;
+            
+            // 收集已知的垂直点位及其h系数（只使用非推算点）
+            const knownPoints = [];
+            if (eyebrowY !== null) knownPoints.push({ y: eyebrowY, coef: 0, name: 'eyebrow_center' });
+            if (eyeY !== null) knownPoints.push({ y: eyeY, coef: 1, name: 'inner_eye' });
+            if (noseY !== null) knownPoints.push({ y: noseY, coef: 3, name: 'nose_bottom' });
+            if (lipY !== null) knownPoints.push({ y: lipY, coef: 4, name: 'lip_center' });
+            if (chinY !== null) knownPoints.push({ y: chinY, coef: 6, name: 'chin_bottom' });
+            
+            // 如果少于2个非推算点，无法更新推算
+            if (knownPoints.length < 2) return;
+            
+            // 使用任意两点计算h值
+            const pt1 = knownPoints[0];
+            const pt2 = knownPoints[1];
+            const h = (pt2.y - pt1.y) / (pt2.coef - pt1.coef);
+            const baseY = pt1.y - pt1.coef * h; // 眉心Y坐标
+            
+            // 更新所有推算点的位置
+            // 眉心
+            if (lm.eyebrow_center && lm.eyebrow_center.type === 'inferred') {
+                lm.eyebrow_center.y = baseY;
+                lm.eyebrow_center.x = centerX;
+            }
+            
+            // 鼻底
+            if (lm.nose_bottom && lm.nose_bottom.type === 'inferred') {
+                lm.nose_bottom.y = baseY + 3 * h;
+                lm.nose_bottom.x = centerX;
+            }
+            noseY = lm.nose_bottom ? lm.nose_bottom.y : baseY + 3 * h;
+            
+            // 唇中
+            if (lm.lip_center && lm.lip_center.type === 'inferred') {
+                lm.lip_center.y = baseY + 4 * h;
+                lm.lip_center.x = centerX;
+            }
+            lipY = lm.lip_center ? lm.lip_center.y : baseY + 4 * h;
+            
+            // 下颌底
+            if (lm.chin_bottom && lm.chin_bottom.type === 'inferred') {
+                lm.chin_bottom.y = baseY + 6 * h;
+                lm.chin_bottom.x = centerX;
+            }
+            
+            // 上庭顶
+            if (lm.forehead_top && lm.forehead_top.type === 'inferred') {
+                lm.forehead_top.y = baseY - 3 * h;
+                lm.forehead_top.x = centerX;
+            }
+            
+            // 更新五眼相关的推算点（需要L值）
+            if (L !== null) {
+                // 更新眼内角Y坐标
+                const innerEyeY = baseY + h;
+                
+                // 左眼内角（当只有右眼内角时推算）
+                if (lm.left_inner_eye && lm.left_inner_eye.type === 'inferred') {
+                    lm.left_inner_eye.x = centerX - L;
+                    lm.left_inner_eye.y = innerEyeY;
+                }
+                
+                // 右眼内角（当只有左眼内角时推算）
+                if (lm.right_inner_eye && lm.right_inner_eye.type === 'inferred') {
+                    lm.right_inner_eye.x = centerX + L;
+                    lm.right_inner_eye.y = innerEyeY;
+                }
+                
+                // 左眼外角
+                if (lm.left_outer_eye && lm.left_outer_eye.type === 'inferred') {
+                    lm.left_outer_eye.x = centerX - 3 * L;
+                    lm.left_outer_eye.y = innerEyeY;
+                }
+                
+                // 右眼外角
+                if (lm.right_outer_eye && lm.right_outer_eye.type === 'inferred') {
+                    lm.right_outer_eye.x = centerX + 3 * L;
+                    lm.right_outer_eye.y = innerEyeY;
+                }
+                
+                // 左耳点
+                if (lm.left_ear && lm.left_ear.type === 'inferred') {
+                    lm.left_ear.x = centerX - 5 * L;
+                    lm.left_ear.y = baseY; // 眉心线
+                }
+                
+                // 右耳点
+                if (lm.right_ear && lm.right_ear.type === 'inferred') {
+                    lm.right_ear.x = centerX + 5 * L;
+                    lm.right_ear.y = baseY; // 眉心线
+                }
+                
+                // 左鼻翼
+                if (lm.left_nose_wing && lm.left_nose_wing.type === 'inferred') {
+                    lm.left_nose_wing.x = centerX - L;
+                    lm.left_nose_wing.y = noseY;
+                }
+                
+                // 右鼻翼
+                if (lm.right_nose_wing && lm.right_nose_wing.type === 'inferred') {
+                    lm.right_nose_wing.x = centerX + L;
+                    lm.right_nose_wing.y = noseY;
+                }
+            }
+            
+            // 更新嘴角点（需要眉心、鼻翼和唇中线）
+            if (lm.eyebrow_center && lm.left_nose_wing && lipY !== null) {
+                if (lm.left_mouth_corner && lm.left_mouth_corner.type === 'inferred') {
+                    const aux1 = { from: lm.eyebrow_center, to: lm.left_nose_wing };
+                    const lipLine = createHorizontalLine(lipY, canvasWidth);
+                    const intersection = lineIntersection(aux1, lipLine);
+                    if (intersection) {
+                        lm.left_mouth_corner.x = intersection.x;
+                        lm.left_mouth_corner.y = intersection.y;
+                    }
+                }
+            }
+            
+            if (lm.eyebrow_center && lm.right_nose_wing && lipY !== null) {
+                if (lm.right_mouth_corner && lm.right_mouth_corner.type === 'inferred') {
+                    const aux2 = { from: lm.eyebrow_center, to: lm.right_nose_wing };
+                    const lipLine = createHorizontalLine(lipY, canvasWidth);
+                    const intersection = lineIntersection(aux2, lipLine);
+                    if (intersection) {
+                        lm.right_mouth_corner.x = intersection.x;
+                        lm.right_mouth_corner.y = intersection.y;
+                    }
+                }
+            }
+            
+            // 更新上唇顶点
+            if (lm.left_ear && lm.left_nose_wing && lm.right_ear && lm.right_nose_wing) {
+                if (lm.upper_lip_top && lm.upper_lip_top.type === 'inferred') {
+                    const aux3 = { from: lm.left_ear, to: lm.left_nose_wing };
+                    const aux4 = { from: lm.right_ear, to: lm.right_nose_wing };
+                    const intersection = lineIntersection(aux3, aux4);
+                    if (intersection) {
+                        lm.upper_lip_top.x = intersection.x;
+                        lm.upper_lip_top.y = intersection.y;
+                    }
+                }
+            }
+            
+            // 更新下颌左右点
+            if (lm.eyebrow_center && lm.left_nose_wing && lm.right_ear && lm.right_nose_wing) {
+                if (lm.chin_left && lm.chin_left.type === 'inferred') {
+                    const aux1 = { from: lm.eyebrow_center, to: lm.left_nose_wing };
+                    const aux4 = { from: lm.right_ear, to: lm.right_nose_wing };
+                    const intersection = lineIntersection(aux1, aux4);
+                    if (intersection) {
+                        lm.chin_left.x = intersection.x;
+                        lm.chin_left.y = intersection.y;
+                    }
+                }
+            }
+            
+            if (lm.eyebrow_center && lm.right_nose_wing && lm.left_ear && lm.left_nose_wing) {
+                if (lm.chin_right && lm.chin_right.type === 'inferred') {
+                    const aux2 = { from: lm.eyebrow_center, to: lm.right_nose_wing };
+                    const aux3 = { from: lm.left_ear, to: lm.left_nose_wing };
+                    const intersection = lineIntersection(aux2, aux3);
+                    if (intersection) {
+                        lm.chin_right.x = intersection.x;
+                        lm.chin_right.y = intersection.y;
+                    }
+                }
+            }
+            
+            // 更新界面
+            updateLandmarkGrid();
+        }
+
+        // ==================== 自动推算 ====================
+        
+        document.getElementById('infer-btn').addEventListener('click', () => {
+            if (Object.keys(state.targetLandmarks).length < 2) {
+                alert('请至少标记2个特征点后再进行推算');
+                return;
+            }
+            
+            saveHistory('target');
+            
+            // 基于三庭五眼比例推算缺失的点
+            const lm = state.targetLandmarks;
+            const centerX = targetCanvas.width / 2;
+            const canvasWidth = targetCanvas.width;
+            const canvasHeight = targetCanvas.height;
+            
+            // 计算五眼参考线数据（获取L值和各条线的位置）
+            const fiveEyeData = calculateFiveEyeLines(lm, canvasWidth);
+            let L = fiveEyeData.L;
+            
+            // 获取眼内角的Y坐标（水平眼内角线）
+            let eyeY = null;
+            if (lm.left_inner_eye && lm.right_inner_eye) {
+                eyeY = (lm.left_inner_eye.y + lm.right_inner_eye.y) / 2;
+            } else if (lm.left_inner_eye) {
+                eyeY = lm.left_inner_eye.y;
+            } else if (lm.right_inner_eye) {
+                eyeY = lm.right_inner_eye.y;
+            }
+            
+            // 获取眉心Y坐标
+            let eyebrowY = lm.eyebrow_center ? lm.eyebrow_center.y : null;
+            
+            // 获取鼻底Y坐标
+            let noseY = lm.nose_bottom ? lm.nose_bottom.y : null;
+            
+            // 获取唇中Y坐标
+            let lipY = lm.lip_center ? lm.lip_center.y : null;
+            
+            // 获取下颌Y坐标
+            let chinY = lm.chin_bottom ? lm.chin_bottom.y : null;
+            
+            // ========== 0. 先推算三庭核心点位 ==========
+            // 使用新的h系数规则：
+            // 眉心=0h, 内眼角=1h, 鼻底=3h, 唇中=4h, 下颌底=6h
+            // 只要知道任意两点，即可推算h值，进而推算所有其他点
+            
+            // 收集已知的垂直点位及其h系数
+            const knownPoints = [];
+            if (eyebrowY !== null) knownPoints.push({ y: eyebrowY, coef: 0, name: 'eyebrow_center' });
+            if (eyeY !== null) knownPoints.push({ y: eyeY, coef: 1, name: 'inner_eye' });
+            if (noseY !== null) knownPoints.push({ y: noseY, coef: 3, name: 'nose_bottom' });
+            if (lipY !== null) knownPoints.push({ y: lipY, coef: 4, name: 'lip_center' });
+            if (chinY !== null) knownPoints.push({ y: chinY, coef: 6, name: 'chin_bottom' });
+            
+            let h = null;
+            let baseY = null; // 眉心位置(coef=0)
+            
+            if (knownPoints.length >= 2) {
+                // 使用任意两点计算h值
+                const pt1 = knownPoints[0];
+                const pt2 = knownPoints[1];
+                h = (pt2.y - pt1.y) / (pt2.coef - pt1.coef);
+                baseY = pt1.y - pt1.coef * h; // 眉心Y坐标
+                
+                // 根据h值推算所有缺失的垂直点
+                if (eyebrowY === null) {
+                    eyebrowY = baseY;
+                    if (!lm.eyebrow_center) {
+                        lm.eyebrow_center = { x: centerX, y: eyebrowY, type: 'inferred' };
+                    }
+                }
+                
+                if (eyeY === null) {
+                    eyeY = baseY + h;
+                    // 内眼角由五眼参考线推算x坐标，这里只更新Y
+                }
+                
+                if (noseY === null) {
+                    noseY = baseY + 3 * h;
+                    if (!lm.nose_bottom) {
+                        lm.nose_bottom = { x: centerX, y: noseY, type: 'inferred' };
+                    }
+                }
+                
+                if (lipY === null) {
+                    lipY = baseY + 4 * h;
+                    if (!lm.lip_center) {
+                        lm.lip_center = { x: centerX, y: lipY, type: 'inferred' };
+                    }
+                }
+                
+                if (chinY === null) {
+                    chinY = baseY + 6 * h;
+                    if (!lm.chin_bottom) {
+                        lm.chin_bottom = { x: centerX, y: chinY, type: 'inferred' };
+                    }
+                }
+                
+                // 推算上庭顶（眉心往上3h）
+                if (!lm.forehead_top) {
+                    lm.forehead_top = { x: centerX, y: baseY - 3 * h, type: 'inferred' };
+                }
+            }
+            
+            // ========== 1. 推算眼部点位 ==========
+            if (L !== null && eyeY !== null) {
+                // 左眼内角：左眼内角线(centerX - L)与眼内角水平线(eyeY)的交点
+                // 当只有右眼内角时推算左眼内角
+                if (!lm.left_inner_eye && lm.right_inner_eye) {
+                    const leftInnerX = centerX - L;
+                    lm.left_inner_eye = { x: leftInnerX, y: eyeY, type: 'inferred' };
+                }
+                
+                // 右眼内角：右眼内角线(centerX + L)与眼内角水平线(eyeY)的交点
+                // 当只有左眼内角时推算右眼内角
+                if (!lm.right_inner_eye && lm.left_inner_eye) {
+                    const rightInnerX = centerX + L;
+                    lm.right_inner_eye = { x: rightInnerX, y: eyeY, type: 'inferred' };
+                }
+                
+                // 左眼外角：左眼外角线(centerX - 3L)与眼内角线(eyeY)的交点
+                if (!lm.left_outer_eye) {
+                    const leftOuterX = centerX - 3 * L;
+                    lm.left_outer_eye = { x: leftOuterX, y: eyeY, type: 'inferred' };
+                }
+                
+                // 右眼外角：右眼外角线(centerX + 3L)与眼内角线(eyeY)的交点
+                if (!lm.right_outer_eye) {
+                    const rightOuterX = centerX + 3 * L;
+                    lm.right_outer_eye = { x: rightOuterX, y: eyeY, type: 'inferred' };
+                }
+            }
+            
+            // ========== 2. 推算耳部点位 ==========
+            if (L !== null && eyebrowY !== null) {
+                // 左耳点：眉心线（水平eyebrowY）与左耳线(centerX - 5L)的交点
+                if (!lm.left_ear) {
+                    const leftEarX = centerX - 5 * L;
+                    lm.left_ear = { x: leftEarX, y: eyebrowY, type: 'inferred' };
+                }
+                
+                // 右耳点：眉心线（水平eyebrowY）与右耳线(centerX + 5L)的交点
+                if (!lm.right_ear) {
+                    const rightEarX = centerX + 5 * L;
+                    lm.right_ear = { x: rightEarX, y: eyebrowY, type: 'inferred' };
+                }
+            }
+            
+            // ========== 3. 推算鼻翼点位 ==========
+            // 需要L值（五眼）和noseY（鼻底线）
+            if (L !== null && noseY !== null) {
+                // 左鼻翼点：左眼内角线(centerX - L)与鼻底线(noseY)的交点
+                if (!lm.left_nose_wing) {
+                    const leftNoseX = centerX - L;
+                    lm.left_nose_wing = { x: leftNoseX, y: noseY, type: 'inferred' };
+                }
+                
+                // 右鼻翼点：右眼内角线(centerX + L)与鼻底线(noseY)的交点
+                if (!lm.right_nose_wing) {
+                    const rightNoseX = centerX + L;
+                    lm.right_nose_wing = { x: rightNoseX, y: noseY, type: 'inferred' };
+                }
+            }
+            
+            // ========== 4. 推算嘴角点位 ==========
+            // 需要眉心、鼻翼点和唇中线
+            if (lm.eyebrow_center && lm.left_nose_wing && lipY !== null) {
+                // 辅助线1：过眉心、左鼻翼
+                const aux1 = { from: lm.eyebrow_center, to: lm.left_nose_wing };
+                // 唇中线（水平线）
+                const lipLine = createHorizontalLine(lipY, canvasWidth);
+                
+                // 左嘴角点：辅助线1与唇中线的交点
+                if (!lm.left_mouth_corner) {
+                    const intersection = lineIntersection(aux1, lipLine);
+                    if (intersection) {
+                        lm.left_mouth_corner = { x: intersection.x, y: intersection.y, type: 'inferred' };
+                    }
+                }
+            }
+            
+            if (lm.eyebrow_center && lm.right_nose_wing && lipY !== null) {
+                // 辅助线2：过眉心、右鼻翼
+                const aux2 = { from: lm.eyebrow_center, to: lm.right_nose_wing };
+                // 唇中线（水平线）
+                const lipLine = createHorizontalLine(lipY, canvasWidth);
+                
+                // 右嘴角点：辅助线2与唇中线的交点
+                if (!lm.right_mouth_corner) {
+                    const intersection = lineIntersection(aux2, lipLine);
+                    if (intersection) {
+                        lm.right_mouth_corner = { x: intersection.x, y: intersection.y, type: 'inferred' };
+                    }
+                }
+            }
+            
+            // ========== 5. 推算上唇顶点 ==========
+            // 上唇顶点：辅助线3（过左耳点、左鼻翼）与辅助线4（过右耳点、右鼻翼）的交点
+            if (lm.left_ear && lm.left_nose_wing && lm.right_ear && lm.right_nose_wing) {
+                const aux3 = { from: lm.left_ear, to: lm.left_nose_wing };
+                const aux4 = { from: lm.right_ear, to: lm.right_nose_wing };
+                
+                if (!lm.upper_lip_top) {
+                    const intersection = lineIntersection(aux3, aux4);
+                    if (intersection) {
+                        lm.upper_lip_top = { x: intersection.x, y: intersection.y, type: 'inferred' };
+                    }
+                }
+            }
+            
+            // ========== 6. 推算下颌左右点 ==========
+            // 下颌左点：辅助线1（眉心-左鼻翼）与辅助线4（右耳-右鼻翼）的交点
+            if (lm.eyebrow_center && lm.left_nose_wing && lm.right_ear && lm.right_nose_wing) {
+                const aux1 = { from: lm.eyebrow_center, to: lm.left_nose_wing };
+                const aux4 = { from: lm.right_ear, to: lm.right_nose_wing };
+                
+                if (!lm.chin_left) {
+                    const intersection = lineIntersection(aux1, aux4);
+                    if (intersection) {
+                        lm.chin_left = { x: intersection.x, y: intersection.y, type: 'inferred' };
+                    }
+                }
+            }
+            
+            // 下颌右点：辅助线2（眉心-右鼻翼）与辅助线3（左耳-左鼻翼）的交点
+            if (lm.eyebrow_center && lm.right_nose_wing && lm.left_ear && lm.left_nose_wing) {
+                const aux2 = { from: lm.eyebrow_center, to: lm.right_nose_wing };
+                const aux3 = { from: lm.left_ear, to: lm.left_nose_wing };
+                
+                if (!lm.chin_right) {
+                    const intersection = lineIntersection(aux2, aux3);
+                    if (intersection) {
+                        lm.chin_right = { x: intersection.x, y: intersection.y, type: 'inferred' };
+                    }
+                }
+            }
+            
+            updateTargetCanvas();
+            updateLandmarkGrid();
+            updateStatus();
+        });
+
+        // ==================== 清空标注 ====================
+        
+        document.getElementById('clear-landmarks-btn').addEventListener('click', () => {
+            if (confirm('确定要清空所有标注吗？')) {
+                saveHistory('target');
+                state.targetLandmarks = {};
+                state.targetPoints = [];
+                updateTargetCanvas();
+                updateLandmarkGrid();
+                updateStatus();
+            }
+        });
+
+        // ==================== 撤销/重做/清空按钮 ====================
+        
+        document.getElementById('target-undo-btn').addEventListener('click', () => undo('target'));
+        document.getElementById('target-redo-btn').addEventListener('click', () => redo('target'));
+        document.getElementById('source-undo-btn').addEventListener('click', () => undo('source'));
+        document.getElementById('source-redo-btn').addEventListener('click', () => redo('source'));
+        
+        document.getElementById('target-clear-btn').addEventListener('click', () => {
+            if (confirm('确定要清空目标图片的所有点位吗？')) {
+                saveHistory('target');
+                state.targetLandmarks = {};
+                state.targetPoints = [];
+                updateTargetCanvas();
+                updateLandmarkGrid();
+                updateStatus();
+            }
+        });
+        
+        document.getElementById('source-clear-btn').addEventListener('click', () => {
+            if (confirm('确定要清空源图片的所有点位吗？')) {
+                saveHistory('source');
+                state.sourceLandmarks = {};
+                state.sourcePoints = [];
+                updateSourceCanvas();
+                updateStatus();
+            }
+        });
+        
+        document.getElementById('target-reupload-btn').addEventListener('click', () => {
+            document.getElementById('target-upload').click();
+        });
+        
+        document.getElementById('source-reupload-btn').addEventListener('click', () => {
+            document.getElementById('source-upload').click();
+        });
+
+        // ==================== AI 检测 ====================
+        
+        async function aiDetect(target) {
+            const image = target === 'target' ? state.targetImage : state.sourceImage;
+            const canvas = target === 'target' ? targetCanvas : sourceCanvas;
+            
+            if (!image) {
+                alert('请先上传图片');
+                return;
+            }
+            
+            showLoading('AI识别中...');
+            
+            try {
+                // 创建临时canvas获取图片数据
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.drawImage(image, 0, 0, canvas.width, canvas.height);
+                
+                const blob = await new Promise(resolve => tempCanvas.toBlob(resolve, 'image/jpeg', 0.9));
+                const formData = new FormData();
+                formData.append('image', blob, 'image.jpg');
+                
+                const response = await fetch('/detect_face', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    saveHistory(target);
+                    
+                    // 添加检测到的特征点
+                    if (data.landmarks) {
+                        Object.entries(data.landmarks).forEach(([name, coords]) => {
+                            if (target === 'target') {
+                                state.targetLandmarks[name] = { x: coords[0], y: coords[1], type: 'ai' };
+                            } else {
+                                state.sourceLandmarks[name] = { x: coords[0], y: coords[1], type: 'ai' };
+                            }
+                        });
+                    }
+                    
+                    // 保存轮廓
+                    if (data.contour) {
+                        if (target === 'target') {
+                            state.targetContour = data.contour;
+                        } else {
+                            state.sourceContour = data.contour;
+                        }
+                    }
+                    
+                    // 保存边界框
+                    if (data.bbox) {
+                        if (target === 'target') {
+                            state.targetBbox = data.bbox;
+                        } else {
+                            state.sourceBbox = data.bbox;
+                        }
+                    }
+                    
+                    if (target === 'target') {
+                        updateTargetCanvas();
+                        updateLandmarkGrid();
+                    } else {
+                        updateSourceCanvas();
+                    }
+                    updateStatus();
+                } else {
+                    alert('AI识别失败：' + (data.error || '未知错误'));
+                }
+            } catch (error) {
+                console.error('AI检测错误:', error);
+                alert('AI识别出错：' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        document.getElementById('target-ai-detect').addEventListener('click', () => aiDetect('target'));
+        document.getElementById('source-ai-detect').addEventListener('click', () => aiDetect('source'));
+
+        // ==================== 处理图片 ====================
+        
+        document.getElementById('process-btn').addEventListener('click', async () => {
+            const targetPointCount = Object.keys(state.targetLandmarks).length + state.targetPoints.length;
+            const sourcePointCount = Object.keys(state.sourceLandmarks).length + state.sourcePoints.length;
+            
+            if (targetPointCount < 3 || sourcePointCount < 3) {
+                alert('目标图片和源图片都需要至少3个点位');
+                return;
+            }
+            
+            if (targetPointCount !== sourcePointCount) {
+                alert(`点位数量不匹配！目标图片: ${targetPointCount} 个, 源图片: ${sourcePointCount} 个`);
+                return;
+            }
+            
+            showLoading('处理中...');
+            
+            try {
+                // 准备目标图片
+                const targetTempCanvas = document.createElement('canvas');
+                targetTempCanvas.width = targetCanvas.width;
+                targetTempCanvas.height = targetCanvas.height;
+                const targetTempCtx = targetTempCanvas.getContext('2d');
+                targetTempCtx.drawImage(state.targetImage, 0, 0, targetCanvas.width, targetCanvas.height);
+                const targetBlob = await new Promise(resolve => targetTempCanvas.toBlob(resolve, 'image/png'));
+                
+                // 准备源图片
+                const sourceTempCanvas = document.createElement('canvas');
+                sourceTempCanvas.width = sourceCanvas.width;
+                sourceTempCanvas.height = sourceCanvas.height;
+                const sourceTempCtx = sourceTempCanvas.getContext('2d');
+                sourceTempCtx.drawImage(state.sourceImage, 0, 0, sourceCanvas.width, sourceCanvas.height);
+                const sourceBlob = await new Promise(resolve => sourceTempCanvas.toBlob(resolve, 'image/png'));
+                
+                // 合并所有点位（按显示顺序：先命名点，后自由点）
+                const targetAllPoints = [];
+                const sourceAllPoints = [];
+                
+                // 目标图片：先添加所有命名特征点，再添加自由点
+                Object.values(state.targetLandmarks).forEach(pt => {
+                    targetAllPoints.push([pt.x, pt.y]);
+                });
+                state.targetPoints.forEach(pt => targetAllPoints.push([pt.x, pt.y]));
+                
+                // 源图片：先添加所有命名特征点，再添加自由点
+                Object.values(state.sourceLandmarks).forEach(pt => {
+                    sourceAllPoints.push([pt.x, pt.y]);
+                });
+                state.sourcePoints.forEach(pt => sourceAllPoints.push([pt.x, pt.y]));
+                
+                const formData = new FormData();
+                formData.append('target_image', targetBlob, 'target.png');
+                formData.append('source_image', sourceBlob, 'source.png');
+                formData.append('target_points', JSON.stringify(targetAllPoints));
+                formData.append('source_points', JSON.stringify(sourceAllPoints));
+                
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.image) {
+                    const resultImg = document.getElementById('result-image');
+                    resultImg.src = 'data:image/png;base64,' + data.image;
+                    document.getElementById('download-link').href = resultImg.src;
+                    document.getElementById('result-modal').classList.add('active');
+                } else {
+                    alert('处理失败：' + (data.error || '未知错误'));
+                }
+            } catch (error) {
+                console.error('处理错误:', error);
+                alert('处理出错：' + error.message);
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // ==================== 辅助函数 ====================
+        
+        function showLoading(text = '处理中...') {
+            document.getElementById('loading-text').textContent = text;
+            document.getElementById('loading').style.display = 'flex';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        function closeModal() {
+            document.getElementById('result-modal').classList.remove('active');
+        }
+        
+        // 键盘快捷键
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'z') {
+                e.preventDefault();
+                undo('target');
+            } else if (e.ctrlKey && e.key === 'y') {
+                e.preventDefault();
+                redo('target');
+            }
+        });
+        
+        // 初始化
+        updateLandmarkGrid();
+        updateStatus();
+    </script>
+</body>
+</html>
