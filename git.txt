@@ -1,0 +1,45 @@
+# 1. 开始工作前：拉取最新代码（非常重要！）
+git pull origin main
+
+# 2. 进行开发修改...
+
+# 3. 查看修改了哪些文件
+git status
+
+# 4. 添加修改到暂存区
+git add .                    # 添加所有修改
+# 或 git add filename.js     # 添加特定文件
+
+# 5. 提交到本地仓库（创建版本）
+git commit -m "feat: 添加用户登录功能"
+
+# 6. 推送到远程仓库（GitHub）
+git push origin main
+
+
+# 正确1：先拉后推
+git pull origin main   # 获取同事的修改
+# 解决可能的冲突
+git add .
+git commit -m "feat: 完成支付功能"
+git push origin main
+
+# 正确2：小步提交，一次提交解决一个问题
+git add user-service.js
+git commit -m "fix: 修复用户查询性能问题"
+
+git add payment-api.js
+git commit -m "feat: 添加支付宝支付支持"
+
+# 正确3：使用特性分支
+git checkout -b feature/chat
+# 在分支上多次提交，直到功能完整
+# 通过PR合并到主分支
+
+
+# 每天的标准流程
+git pull origin main          # 1. 获取最新
+# 开发修改...
+git add .                     # 2. 添加修改
+git commit -m "清晰的描述"    # 3. 本地保存版本
+git push origin main          # 4. 远程备份
