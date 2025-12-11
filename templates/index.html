@@ -608,7 +608,7 @@
                             <option value="forehead_top">上庭顶 (发际线)</option>
                             <option value="eyebrow_center">眉心</option>
                             <option value="nose_bottom">鼻底</option>
-                            <option value="lip_center">唇中</option>
+                            <option value="lip_center">上唇</option>
                             <option value="chin_bottom">下颌底</option>
                         </optgroup>
                         <optgroup label="鼻部">
@@ -639,7 +639,7 @@
                         <button class="landmark-btn" data-point="forehead_top">上庭顶</button>
                         <button class="landmark-btn" data-point="eyebrow_center">眉心</button>
                         <button class="landmark-btn" data-point="nose_bottom">鼻底</button>
-                        <button class="landmark-btn" data-point="lip_center">唇中</button>
+                        <button class="landmark-btn" data-point="lip_center">上唇</button>
                         <button class="landmark-btn" data-point="chin_bottom">下颌底</button>
                         <button class="landmark-btn" data-point="left_ear">左耳</button>
                         <button class="landmark-btn" data-point="right_ear">右耳</button>
@@ -983,14 +983,14 @@
         // - 眉心 = 0h
         // - 内眼角 = 1h（眉心往下1h）
         // - 鼻底 = 3h（眉心往下3h，即内眼角往下2h）
-        // - 唇中 = 4h（眉心往下4h，即鼻底往下1h）
-        // - 下颌底 = 6h（眉心往下6h，即唇中往下2h）
+        // - 上唇 = 4h（眉心往下4h，即鼻底往下1h）
+        // - 下颌底 = 6h（眉心往下6h，即上唇往下2h）
         // 只要知道任意两点，即可推算出h值，进而推算所有其他点
         function calculateThreePartLines(landmarks, canvasHeight) {
             const lines = [];
             
             // 收集已标记的垂直点位及其h系数
-            // 眉心=0h, 内眼角=1h, 鼻底=3h, 唇中=4h, 下颌底=6h
+            // 眉心=0h, 内眼角=1h, 鼻底=3h, 上唇=4h, 下颌底=6h
             const points = [];
             if (landmarks.eyebrow_center) {
                 points.push({ y: landmarks.eyebrow_center.y, coef: 0, name: '眉心', marked: true });
@@ -1010,7 +1010,7 @@
                 points.push({ y: landmarks.nose_bottom.y, coef: 3, name: '鼻底', marked: true });
             }
             if (landmarks.lip_center) {
-                points.push({ y: landmarks.lip_center.y, coef: 4, name: '唇中', marked: true });
+                points.push({ y: landmarks.lip_center.y, coef: 4, name: '上唇', marked: true });
             }
             if (landmarks.chin_bottom) {
                 points.push({ y: landmarks.chin_bottom.y, coef: 6, name: '下颌底', marked: true });
@@ -1039,7 +1039,7 @@
                 { coef: 0, name: '眉心' },
                 { coef: 1, name: '内眼角' },
                 { coef: 3, name: '鼻底' },
-                { coef: 4, name: '唇中' },
+                { coef: 4, name: '上唇' },
                 { coef: 6, name: '下颌底' }
             ];
             
@@ -1429,7 +1429,7 @@
                 'forehead_top': '上庭顶',
                 'eyebrow_center': '眉心',
                 'nose_bottom': '鼻底',
-                'lip_center': '唇中',
+                'lip_center': '上唇',
                 'chin_bottom': '下颌底',
                 'left_ear': '左耳',
                 'right_ear': '右耳',
@@ -1967,7 +1967,7 @@
             }
             noseY = lm.nose_bottom ? lm.nose_bottom.y : baseY + 3 * h;
             
-            // 唇中
+            // 上唇
             if (lm.lip_center && lm.lip_center.type === 'inferred') {
                 lm.lip_center.y = baseY + 4 * h;
                 lm.lip_center.x = centerX;
@@ -2040,7 +2040,7 @@
                 }
             }
             
-            // 更新嘴角点（需要眉心、鼻翼和唇中线）
+            // 更新嘴角点（需要眉心、鼻翼和上唇线）
             if (lm.eyebrow_center && lm.left_nose_wing && lipY !== null) {
                 if (lm.left_mouth_corner && lm.left_mouth_corner.type === 'inferred') {
                     const aux1 = { from: lm.eyebrow_center, to: lm.left_nose_wing };
@@ -2143,7 +2143,7 @@
             // 获取鼻底Y坐标
             let noseY = lm.nose_bottom ? lm.nose_bottom.y : null;
             
-            // 获取唇中Y坐标
+            // 获取上唇Y坐标
             let lipY = lm.lip_center ? lm.lip_center.y : null;
             
             // 获取下颌Y坐标
@@ -2151,7 +2151,7 @@
             
             // ========== 0. 先推算三庭核心点位 ==========
             // 使用新的h系数规则：
-            // 眉心=0h, 内眼角=1h, 鼻底=3h, 唇中=4h, 下颌底=6h
+            // 眉心=0h, 内眼角=1h, 鼻底=3h, 上唇=4h, 下颌底=6h
             // 只要知道任意两点，即可推算h值，进而推算所有其他点
             
             // 收集已知的垂直点位及其h系数
@@ -2272,14 +2272,14 @@
             }
             
             // ========== 4. 推算嘴角点位 ==========
-            // 需要眉心、鼻翼点和唇中线
+            // 需要眉心、鼻翼点和上唇线
             if (lm.eyebrow_center && lm.left_nose_wing && lipY !== null) {
                 // 辅助线1：过眉心、左鼻翼
                 const aux1 = { from: lm.eyebrow_center, to: lm.left_nose_wing };
-                // 唇中线（水平线）
+                // 上唇线（水平线）
                 const lipLine = createHorizontalLine(lipY, canvasWidth);
                 
-                // 左嘴角点：辅助线1与唇中线的交点
+                // 左嘴角点：辅助线1与上唇线的交点
                 if (!lm.left_mouth_corner) {
                     const intersection = lineIntersection(aux1, lipLine);
                     if (intersection) {
@@ -2291,10 +2291,10 @@
             if (lm.eyebrow_center && lm.right_nose_wing && lipY !== null) {
                 // 辅助线2：过眉心、右鼻翼
                 const aux2 = { from: lm.eyebrow_center, to: lm.right_nose_wing };
-                // 唇中线（水平线）
+                // 上唇线（水平线）
                 const lipLine = createHorizontalLine(lipY, canvasWidth);
                 
-                // 右嘴角点：辅助线2与唇中线的交点
+                // 右嘴角点：辅助线2与上唇线的交点
                 if (!lm.right_mouth_corner) {
                     const intersection = lineIntersection(aux2, lipLine);
                     if (intersection) {
