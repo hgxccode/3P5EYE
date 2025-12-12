@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3p5eyes</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Font Awesome: 优先使用本地资源（内网部署），回退到CDN（外网） -->
+    <link rel="stylesheet" href="/static/fontawesome/css/all.min.css" onerror="this.onerror=null;this.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';">
     <style>
         :root {
             --bg-dark: #1e1e1e;
@@ -585,6 +586,7 @@
                 <div class="mode-tabs">
                     <button class="mode-tab active" id="mode-locate">1. 定位五官</button>
                     <button class="mode-tab" id="mode-transfer">2. 迁移修复</button>
+                    <button class="mode-tab" id="mode-compare">3. 人像比对</button>
                 </div>
             </div>
 
@@ -681,6 +683,99 @@
                         <div class="toggle-switch" id="toggle-contour"></div>
                     </div>
                     <div class="info-text">提示：参考线基于三庭五眼比例自动计算</div>
+                </div>
+            </div>
+
+            <!-- Compare Mode Panel -->
+            <div id="compare-panel" style="display: none;">
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fas fa-image"></i> 比对图片</div>
+                    <div class="status-card" id="compare-image-status">
+                        <div class="status-label">图片来源</div>
+                        <div class="status-value" id="compare-image-source">未选择图片</div>
+                    </div>
+                    <button id="compare-use-result-btn" class="tool-btn primary">
+                        <i class="fas fa-magic"></i> 使用修复结果
+                    </button>
+                    <button id="compare-upload-btn" class="tool-btn">
+                        <i class="fas fa-upload"></i> 上传新图片
+                    </button>
+                    <input type="file" id="compare-image-upload" accept="image/*" style="display: none;">
+                </div>
+
+                <div class="section-divider"></div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fas fa-sliders-h"></i> 基本参数</div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 4px;">相似度阈值 (0-100)</label>
+                        <input type="number" id="compare-similarity" value="80" min="0" max="100" class="landmark-select" style="margin-bottom: 0;">
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 4px;">最大返回数量</label>
+                        <input type="number" id="compare-max-count" value="10" min="1" max="100" class="landmark-select" style="margin-bottom: 0;">
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 4px;">算法策略</label>
+                        <select id="compare-algorithm-strategy" class="landmark-select" style="margin-bottom: 0;">
+                            <option value="all">全部算法 (all)</option>
+                            <option value="default">默认算法 (default)</option>
+                        </select>
+                    </div>
+                    <div class="toggle-container">
+                        <span>综合排序</span>
+                        <div class="toggle-switch active" id="toggle-multiple-arrange"></div>
+                    </div>
+                    <div class="info-text">综合排序：按所有算法返回的相似度从高到低排序</div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fas fa-clock"></i> 时间范围</div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 4px;">开始时间</label>
+                        <input type="datetime-local" id="compare-start-time-panel" class="landmark-select" style="margin-bottom: 0;">
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 4px;">结束时间</label>
+                        <input type="datetime-local" id="compare-end-time-panel" class="landmark-select" style="margin-bottom: 0;">
+                    </div>
+                    <div class="info-text">不填则默认查询最近一个月</div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fas fa-cog"></i> 高级选项</div>
+                    <div class="toggle-container">
+                        <span>关联查询</span>
+                        <div class="toggle-switch" id="toggle-linked-query"></div>
+                    </div>
+                    <div class="toggle-container">
+                        <span>返回图片Base64</span>
+                        <div class="toggle-switch active" id="toggle-return-image"></div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title"><i class="fas fa-file-alt"></i> 案件信息 (可选)</div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 4px;">案件ID</label>
+                        <input type="text" id="compare-case-id" placeholder="用于日志记录" class="landmark-select" style="margin-bottom: 0;">
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 4px;">案件名称</label>
+                        <input type="text" id="compare-case-name" placeholder="用于日志记录" class="landmark-select" style="margin-bottom: 0;">
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 4px;">比对事由</label>
+                        <input type="text" id="compare-reason" placeholder="比对原因说明" class="landmark-select" style="margin-bottom: 0;">
+                    </div>
+                </div>
+
+                <div class="section-divider"></div>
+
+                <div class="sidebar-section">
+                    <button id="start-compare-panel-btn" class="tool-btn primary">
+                        <i class="fas fa-search"></i> 开始人像比对
+                    </button>
                 </div>
             </div>
 
@@ -841,6 +936,41 @@
         </div>
     </div>
 
+    <!-- Compare Workspace (人像比对工作区) -->
+    <div class="workspace" id="compare-workspace" style="display: none;">
+        <div class="loading-overlay" id="compare-loading">
+            <div class="spinner"></div>
+            <div id="compare-loading-text">正在比对中...</div>
+        </div>
+
+        <!-- 比对图片预览区 - 紧凑布局 -->
+        <div class="canvas-wrapper" style="flex: 0 0 200px; max-width: 200px; padding: 15px;">
+            <div class="canvas-header" style="font-size: 11px; padding: 4px 8px;">比对图片</div>
+            <div class="canvas-container" id="compare-image-container" style="min-width: 160px; min-height: 200px;">
+                <label class="upload-trigger" id="compare-upload-trigger" style="padding: 20px;">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 32px; margin-bottom: 10px;"></i>
+                    <span style="font-size: 11px;">点击上传图片</span>
+                </label>
+                <img id="compare-preview-image" src="" alt="比对图片" style="max-width: 100%; max-height: 280px; display: none; object-fit: contain;">
+            </div>
+            <div class="legend" style="justify-content: center; margin-top: 8px;">
+                <div class="legend-item" style="font-size: 10px;"><i class="fas fa-info-circle"></i> 搜索图片</div>
+            </div>
+        </div>
+
+        <!-- 比对结果展示区 -->
+        <div class="canvas-wrapper" style="flex: 1; overflow-y: auto; padding: 15px;">
+            <div class="canvas-header">比对结果</div>
+            <div id="compare-results-workspace" style="width: 100%; padding: 15px;">
+                <div style="text-align: center; color: #888; padding: 40px 20px;">
+                    <i class="fas fa-search" style="font-size: 48px; margin-bottom: 15px; display: block; color: #555;"></i>
+                    <div style="font-size: 14px; margin-bottom: 8px;">准备进行人像比对</div>
+                    <div style="font-size: 11px; color: #666;">请先选择比对图片，然后点击"开始人像比对"按钮</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Result Modal -->
     <div class="modal" id="result-modal">
         <div class="modal-content">
@@ -850,10 +980,69 @@
             </div>
             <img id="result-image" src="" alt="Result">
             <div class="modal-footer">
+                <button id="face-compare-btn" class="tool-btn ai">
+                    <i class="fas fa-user-check"></i> 人像比对
+                </button>
                 <a id="download-link" href="#" download="face_fixed.png" class="tool-btn primary" style="text-decoration: none;">
                     <i class="fas fa-download"></i> 下载图片
                 </a>
                 <button class="tool-btn" onclick="closeModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Face Compare Modal -->
+    <div class="modal" id="compare-modal">
+        <div class="modal-content" style="max-width: 1200px; width: 95%;">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-user-check"></i> 人像比对结果</div>
+                <button class="close-btn" onclick="closeCompareModal()">&times;</button>
+            </div>
+            <div id="compare-settings" style="margin-bottom: 15px; padding: 15px; background: #333; border-radius: 8px;">
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label style="font-size: 12px; color: #aaa; display: block; margin-bottom: 5px;">相似度阈值</label>
+                        <input type="number" id="similarity-threshold" value="80" min="0" max="100" 
+                               style="width: 100%; padding: 8px; background: #444; border: 1px solid #555; color: white; border-radius: 4px;">
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <label style="font-size: 12px; color: #aaa; display: block; margin-bottom: 5px;">返回数量</label>
+                        <input type="number" id="compare-count" value="10" min="1" max="50" 
+                               style="width: 100%; padding: 8px; background: #444; border: 1px solid #555; color: white; border-radius: 4px;">
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <label style="font-size: 12px; color: #aaa; display: block; margin-bottom: 5px;">开始时间</label>
+                        <input type="datetime-local" id="compare-start-time" 
+                               style="width: 100%; padding: 8px; background: #444; border: 1px solid #555; color: white; border-radius: 4px;">
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <label style="font-size: 12px; color: #aaa; display: block; margin-bottom: 5px;">结束时间</label>
+                        <input type="datetime-local" id="compare-end-time" 
+                               style="width: 100%; padding: 8px; background: #444; border: 1px solid #555; color: white; border-radius: 4px;">
+                    </div>
+                    <div style="flex: 0 0 auto; padding-top: 20px;">
+                        <button id="start-compare-btn" class="tool-btn primary">
+                            <i class="fas fa-search"></i> 开始比对
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="compare-status" style="text-align: center; padding: 10px; display: none;">
+                <div class="spinner" style="margin: 0 auto 10px;"></div>
+                <span id="compare-status-text">正在比对中...</span>
+            </div>
+            <div id="compare-summary" style="display: none; margin-bottom: 15px; padding: 10px; background: #2a5a2a; border-radius: 4px; color: #8f8;">
+                <i class="fas fa-check-circle"></i> 
+                <span id="compare-summary-text"></span>
+            </div>
+            <div id="compare-results" style="max-height: 60vh; overflow-y: auto;">
+                <div style="text-align: center; color: #888; padding: 40px;">
+                    <i class="fas fa-search" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                    点击"开始比对"按钮进行人像搜索
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="tool-btn" onclick="closeCompareModal()">关闭</button>
             </div>
         </div>
     </div>
@@ -1815,8 +2004,28 @@
             state.mode = 'transfer';
             document.getElementById('mode-transfer').classList.add('active');
             document.getElementById('mode-locate').classList.remove('active');
+            document.getElementById('mode-compare').classList.remove('active');
             document.getElementById('transfer-panel').style.display = 'block';
             document.getElementById('locate-panel').style.display = 'none';
+            document.getElementById('compare-panel').style.display = 'none';
+            // 显示正常工作区
+            document.querySelector('.workspace').style.display = 'flex';
+            document.getElementById('compare-workspace').style.display = 'none';
+        });
+        
+        document.getElementById('mode-compare').addEventListener('click', () => {
+            state.mode = 'compare';
+            document.getElementById('mode-compare').classList.add('active');
+            document.getElementById('mode-locate').classList.remove('active');
+            document.getElementById('mode-transfer').classList.remove('active');
+            document.getElementById('compare-panel').style.display = 'block';
+            document.getElementById('locate-panel').style.display = 'none';
+            document.getElementById('transfer-panel').style.display = 'none';
+            // 切换到比对工作区
+            document.querySelector('.workspace').style.display = 'none';
+            document.getElementById('compare-workspace').style.display = 'flex';
+            // 检查是否有修复结果可用
+            updateCompareImageStatus();
         });
 
         // ==================== 显示选项切换 ====================
@@ -2589,9 +2798,496 @@
             }
         });
         
+        // ==================== 人像比对功能 ====================
+        
+        // 存储当前处理结果的base64数据
+        let currentResultImageData = null;
+        
+        // 初始化比对时间范围（默认最近7天）
+        function initCompareTimeRange() {
+            const now = new Date();
+            const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            
+            // 格式化为 datetime-local 需要的格式
+            const formatDateTime = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            };
+            
+            document.getElementById('compare-start-time').value = formatDateTime(sevenDaysAgo);
+            document.getElementById('compare-end-time').value = formatDateTime(now);
+        }
+        
+        // 打开人像比对弹窗
+        document.getElementById('face-compare-btn').addEventListener('click', () => {
+            // 获取当前处理结果图片的base64数据
+            const resultImg = document.getElementById('result-image');
+            currentResultImageData = resultImg.src;
+            
+            // 初始化时间范围
+            initCompareTimeRange();
+            
+            // 重置比对结果区域
+            document.getElementById('compare-results').innerHTML = `
+                <div style="text-align: center; color: #888; padding: 40px;">
+                    <i class="fas fa-search" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                    点击"开始比对"按钮进行人像搜索
+                </div>
+            `;
+            document.getElementById('compare-summary').style.display = 'none';
+            document.getElementById('compare-status').style.display = 'none';
+            
+            // 显示比对弹窗
+            document.getElementById('compare-modal').classList.add('active');
+        });
+        
+        // 关闭比对弹窗
+        function closeCompareModal() {
+            document.getElementById('compare-modal').classList.remove('active');
+        }
+        
+        // 开始人像比对
+        document.getElementById('start-compare-btn').addEventListener('click', async () => {
+            if (!currentResultImageData) {
+                alert('没有可用的图片数据');
+                return;
+            }
+            
+            // 显示加载状态
+            document.getElementById('compare-status').style.display = 'block';
+            document.getElementById('compare-status-text').textContent = '正在比对中...';
+            document.getElementById('compare-summary').style.display = 'none';
+            document.getElementById('compare-results').innerHTML = '';
+            
+            try {
+                // 获取比对参数
+                const similarityThreshold = parseInt(document.getElementById('similarity-threshold').value) || 80;
+                const count = parseInt(document.getElementById('compare-count').value) || 10;
+                const startTimeInput = document.getElementById('compare-start-time').value;
+                const endTimeInput = document.getElementById('compare-end-time').value;
+                
+                // 格式化时间
+                const formatTime = (dateTimeLocal) => {
+                    if (!dateTimeLocal) return null;
+                    const date = new Date(dateTimeLocal);
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    const seconds = String(date.getSeconds()).padStart(2, '0');
+                    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+                };
+                
+                // 构建请求数据
+                const requestData = {
+                    imageData: currentResultImageData,
+                    similarityThreshold: similarityThreshold,
+                    count: count,
+                    algorithmStrategy: 'all',
+                    multipleArrage: 1,
+                    linkedQuery: '0',
+                    returnImageData: '1'
+                };
+                
+                if (startTimeInput) {
+                    requestData.startTime = formatTime(startTimeInput);
+                }
+                if (endTimeInput) {
+                    requestData.endTime = formatTime(endTimeInput);
+                }
+                
+                // 发送比对请求
+                const response = await fetch('/face_compare', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const data = await response.json();
+                
+                // 隐藏加载状态
+                document.getElementById('compare-status').style.display = 'none';
+                
+                if (data.success) {
+                    // 显示比对结果摘要
+                    document.getElementById('compare-summary').style.display = 'block';
+                    document.getElementById('compare-summary-text').textContent = 
+                        `比对完成，共找到 ${data.totalCount} 条匹配结果，耗时 ${data.timeElapsed}ms`;
+                    
+                    // 渲染比对结果
+                    renderCompareResults(data.results);
+                } else {
+                    // 显示错误
+                    document.getElementById('compare-summary').style.display = 'block';
+                    document.getElementById('compare-summary').style.background = '#5a2a2a';
+                    document.getElementById('compare-summary').style.color = '#f88';
+                    document.getElementById('compare-summary-text').textContent = 
+                        `比对失败：${data.error || '未知错误'}`;
+                }
+            } catch (error) {
+                console.error('比对错误:', error);
+                document.getElementById('compare-status').style.display = 'none';
+                document.getElementById('compare-summary').style.display = 'block';
+                document.getElementById('compare-summary').style.background = '#5a2a2a';
+                document.getElementById('compare-summary').style.color = '#f88';
+                document.getElementById('compare-summary-text').textContent = 
+                    `比对出错：${error.message}`;
+            }
+        });
+        
+        // 渲染比对结果
+        function renderCompareResults(results) {
+            const container = document.getElementById('compare-results');
+            
+            if (!results || results.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: #888; padding: 40px;">
+                        <i class="fas fa-user-slash" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                        未找到匹配的人像
+                    </div>
+                `;
+                return;
+            }
+            
+            // 创建结果网格
+            let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; padding: 10px;">';
+            
+            results.forEach((result, index) => {
+                // 获取图片源（优先使用base64数据，否则使用URL）
+                let faceImgSrc = '';
+                if (result.faceData) {
+                    faceImgSrc = result.faceData.startsWith('data:') ? result.faceData : `data:image/jpeg;base64,${result.faceData}`;
+                } else if (result.faceUrl) {
+                    faceImgSrc = result.faceUrl;
+                }
+                
+                // 相似度颜色
+                const similarity = parseFloat(result.similarity) || 0;
+                let similarityColor = '#4caf50'; // 绿色 - 高相似度
+                if (similarity < 70) {
+                    similarityColor = '#ff9800'; // 橙色 - 中等相似度
+                } else if (similarity < 50) {
+                    similarityColor = '#f44336'; // 红色 - 低相似度
+                }
+                
+                html += `
+                    <div style="background: #333; border-radius: 8px; overflow: hidden; border: 1px solid #444;">
+                        <div style="position: relative;">
+                            ${faceImgSrc ? 
+                                `<img src="${faceImgSrc}" style="width: 100%; height: 180px; object-fit: cover;" 
+                                     onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23444%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23888%22 font-size=%2212%22>图片加载失败</text></svg>';">` :
+                                `<div style="width: 100%; height: 180px; background: #444; display: flex; align-items: center; justify-content: center; color: #888;">
+                                    <i class="fas fa-user" style="font-size: 48px;"></i>
+                                </div>`
+                            }
+                            <div style="position: absolute; top: 10px; right: 10px; background: ${similarityColor}; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 14px;">
+                                ${similarity.toFixed(1)}%
+                            </div>
+                            <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                                #${index + 1}
+                            </div>
+                        </div>
+                        <div style="padding: 12px;">
+                            ${result.name ? `<div style="font-weight: bold; margin-bottom: 8px; color: #fff;">${result.name}</div>` : ''}
+                            ${result.idNumber ? `<div style="font-size: 12px; color: #aaa; margin-bottom: 4px;"><i class="fas fa-id-card" style="width: 16px;"></i> ${result.idNumber}</div>` : ''}
+                            ${result.shotTime ? `<div style="font-size: 12px; color: #aaa; margin-bottom: 4px;"><i class="fas fa-clock" style="width: 16px;"></i> ${result.shotTime}</div>` : ''}
+                            ${result.deviceName ? `<div style="font-size: 12px; color: #aaa; margin-bottom: 4px;"><i class="fas fa-video" style="width: 16px;"></i> ${result.deviceName}</div>` : ''}
+                            <div style="font-size: 11px; color: #666; margin-top: 8px;">
+                                算法: ${result.algorithmName || result.algorithmVendor || '未知'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        // ==================== 人像比对模式功能 ====================
+        
+        // 比对模式的图片数据
+        let compareImageData = null;
+        let compareImageSource = 'none'; // 'none', 'result', 'upload'
+        
+        // 更新比对图片状态显示
+        function updateCompareImageStatus() {
+            const sourceText = document.getElementById('compare-image-source');
+            const previewImg = document.getElementById('compare-preview-image');
+            const container = document.getElementById('compare-image-container');
+            const uploadTrigger = document.getElementById('compare-upload-trigger');
+            
+            if (compareImageData && compareImageSource !== 'none') {
+                sourceText.textContent = compareImageSource === 'result' ? '修复结果图片' : '用户上传图片';
+                previewImg.src = compareImageData;
+                previewImg.style.display = 'block';
+                container.classList.add('has-image');
+                if (uploadTrigger) uploadTrigger.style.display = 'none';
+            } else {
+                // 检查是否有修复结果可用
+                const resultImg = document.getElementById('result-image');
+                if (resultImg && resultImg.src && resultImg.src.startsWith('data:')) {
+                    sourceText.textContent = '可使用修复结果';
+                    sourceText.style.color = '#4caf50';
+                } else {
+                    sourceText.textContent = '未选择图片';
+                    sourceText.style.color = '';
+                }
+                previewImg.style.display = 'none';
+                container.classList.remove('has-image');
+                if (uploadTrigger) uploadTrigger.style.display = 'flex';
+            }
+        }
+        
+        // 使用修复结果按钮
+        document.getElementById('compare-use-result-btn').addEventListener('click', () => {
+            const resultImg = document.getElementById('result-image');
+            if (resultImg && resultImg.src && resultImg.src.startsWith('data:')) {
+                compareImageData = resultImg.src;
+                compareImageSource = 'result';
+                updateCompareImageStatus();
+            } else {
+                alert('没有可用的修复结果图片。请先完成五官修复步骤。');
+            }
+        });
+        
+        // 上传新图片按钮
+        document.getElementById('compare-upload-btn').addEventListener('click', () => {
+            document.getElementById('compare-image-upload').click();
+        });
+        
+        // 比对图片上传处理
+        document.getElementById('compare-image-upload').addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    compareImageData = event.target.result;
+                    compareImageSource = 'upload';
+                    updateCompareImageStatus();
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+        
+        // 比对工作区的上传触发器
+        document.getElementById('compare-upload-trigger').addEventListener('click', () => {
+            document.getElementById('compare-image-upload').click();
+        });
+        
+        // 初始化比对面板时间范围
+        function initComparePanelTimeRange() {
+            const now = new Date();
+            const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            
+            const formatDateTime = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            };
+            
+            document.getElementById('compare-start-time-panel').value = formatDateTime(oneMonthAgo);
+            document.getElementById('compare-end-time-panel').value = formatDateTime(now);
+        }
+        
+        // 比对面板的toggle开关事件
+        document.getElementById('toggle-multiple-arrange').addEventListener('click', function() {
+            this.classList.toggle('active');
+        });
+        
+        document.getElementById('toggle-linked-query').addEventListener('click', function() {
+            this.classList.toggle('active');
+        });
+        
+        document.getElementById('toggle-return-image').addEventListener('click', function() {
+            this.classList.toggle('active');
+        });
+        
+        // 开始人像比对（面板按钮）
+        document.getElementById('start-compare-panel-btn').addEventListener('click', async () => {
+            if (!compareImageData) {
+                alert('请先选择比对图片（使用修复结果或上传新图片）');
+                return;
+            }
+            
+            // 显示加载状态
+            const loadingOverlay = document.getElementById('compare-loading');
+            const loadingText = document.getElementById('compare-loading-text');
+            loadingOverlay.style.display = 'flex';
+            loadingText.textContent = '正在比对中...';
+            
+            try {
+                // 获取比对参数
+                const similarityThreshold = parseInt(document.getElementById('compare-similarity').value) || 80;
+                const count = parseInt(document.getElementById('compare-max-count').value) || 10;
+                const algorithmStrategy = document.getElementById('compare-algorithm-strategy').value;
+                const multipleArrage = document.getElementById('toggle-multiple-arrange').classList.contains('active') ? 1 : 0;
+                const linkedQuery = document.getElementById('toggle-linked-query').classList.contains('active') ? '1' : '0';
+                const returnImageData = document.getElementById('toggle-return-image').classList.contains('active') ? '1' : '0';
+                const startTimeInput = document.getElementById('compare-start-time-panel').value;
+                const endTimeInput = document.getElementById('compare-end-time-panel').value;
+                const caseId = document.getElementById('compare-case-id').value;
+                const caseName = document.getElementById('compare-case-name').value;
+                const comparisonReason = document.getElementById('compare-reason').value;
+                
+                // 格式化时间
+                const formatTime = (dateTimeLocal) => {
+                    if (!dateTimeLocal) return null;
+                    const date = new Date(dateTimeLocal);
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    const seconds = String(date.getSeconds()).padStart(2, '0');
+                    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+                };
+                
+                // 构建请求数据
+                const requestData = {
+                    imageData: compareImageData,
+                    similarityThreshold: similarityThreshold,
+                    count: count,
+                    algorithmStrategy: algorithmStrategy,
+                    multipleArrage: multipleArrage,
+                    linkedQuery: linkedQuery,
+                    returnImageData: returnImageData
+                };
+                
+                if (startTimeInput) requestData.startTime = formatTime(startTimeInput);
+                if (endTimeInput) requestData.endTime = formatTime(endTimeInput);
+                if (caseId) requestData.caseId = caseId;
+                if (caseName) requestData.caseName = caseName;
+                if (comparisonReason) requestData.comparisonReason = comparisonReason;
+                
+                // 发送比对请求
+                const response = await fetch('/face_compare', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const data = await response.json();
+                
+                // 隐藏加载状态
+                loadingOverlay.style.display = 'none';
+                
+                // 渲染结果到工作区
+                renderCompareResultsWorkspace(data);
+                
+            } catch (error) {
+                console.error('比对错误:', error);
+                document.getElementById('compare-loading').style.display = 'none';
+                document.getElementById('compare-results-workspace').innerHTML = `
+                    <div style="text-align: center; color: #f88; padding: 60px 20px;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 64px; margin-bottom: 20px; display: block;"></i>
+                        <div style="font-size: 16px; margin-bottom: 10px;">比对出错</div>
+                        <div style="font-size: 12px; color: #888;">${error.message}</div>
+                    </div>
+                `;
+            }
+        });
+        
+        // 渲染比对结果到工作区
+        function renderCompareResultsWorkspace(data) {
+            const container = document.getElementById('compare-results-workspace');
+            
+            if (!data.success) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: #f88; padding: 60px 20px;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 64px; margin-bottom: 20px; display: block;"></i>
+                        <div style="font-size: 16px; margin-bottom: 10px;">比对失败</div>
+                        <div style="font-size: 12px; color: #888;">${data.error || '未知错误'}</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            const results = data.results || [];
+            
+            if (results.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: #888; padding: 60px 20px;">
+                        <i class="fas fa-user-slash" style="font-size: 64px; margin-bottom: 20px; display: block; color: #555;"></i>
+                        <div style="font-size: 16px; margin-bottom: 10px;">未找到匹配的人像</div>
+                        <div style="font-size: 12px; color: #666;">尝试降低相似度阈值或扩大时间范围</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 显示摘要和结果网格
+            let html = `
+                <div style="background: #2a5a2a; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; color: #8f8;">
+                    <i class="fas fa-check-circle"></i> 
+                    比对完成，共找到 <strong>${data.totalCount || results.length}</strong> 条匹配结果，耗时 ${data.timeElapsed || 0}ms
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+            `;
+            
+            results.forEach((result, index) => {
+                let faceImgSrc = '';
+                if (result.faceData) {
+                    faceImgSrc = result.faceData.startsWith('data:') ? result.faceData : `data:image/jpeg;base64,${result.faceData}`;
+                } else if (result.faceUrl) {
+                    faceImgSrc = result.faceUrl;
+                }
+                
+                const similarity = parseFloat(result.similarity) || 0;
+                let similarityColor = '#4caf50';
+                if (similarity < 70) similarityColor = '#ff9800';
+                else if (similarity < 50) similarityColor = '#f44336';
+                
+                html += `
+                    <div style="background: #333; border-radius: 8px; overflow: hidden; border: 1px solid #444;">
+                        <div style="position: relative;">
+                            ${faceImgSrc ? 
+                                `<img src="${faceImgSrc}" style="width: 100%; height: 160px; object-fit: cover;" 
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                 <div style="width: 100%; height: 160px; background: #444; display: none; align-items: center; justify-content: center; color: #888;">
+                                    <i class="fas fa-user" style="font-size: 40px;"></i>
+                                 </div>` :
+                                `<div style="width: 100%; height: 160px; background: #444; display: flex; align-items: center; justify-content: center; color: #888;">
+                                    <i class="fas fa-user" style="font-size: 40px;"></i>
+                                </div>`
+                            }
+                            <div style="position: absolute; top: 8px; right: 8px; background: ${similarityColor}; color: white; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 13px;">
+                                ${similarity.toFixed(1)}%
+                            </div>
+                            <div style="position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.7); color: white; padding: 3px 6px; border-radius: 4px; font-size: 11px;">
+                                #${index + 1}
+                            </div>
+                        </div>
+                        <div style="padding: 10px;">
+                            ${result.name ? `<div style="font-weight: bold; margin-bottom: 6px; color: #fff; font-size: 13px;">${result.name}</div>` : ''}
+                            ${result.idNumber ? `<div style="font-size: 11px; color: #aaa; margin-bottom: 3px;"><i class="fas fa-id-card" style="width: 14px;"></i> ${result.idNumber}</div>` : ''}
+                            ${result.shotTime ? `<div style="font-size: 11px; color: #aaa; margin-bottom: 3px;"><i class="fas fa-clock" style="width: 14px;"></i> ${result.shotTime}</div>` : ''}
+                            ${result.deviceName ? `<div style="font-size: 11px; color: #aaa; margin-bottom: 3px;"><i class="fas fa-video" style="width: 14px;"></i> ${result.deviceName}</div>` : ''}
+                            <div style="font-size: 10px; color: #666; margin-top: 6px;">
+                                算法: ${result.algorithmName || result.algorithmVendor || '未知'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
         // 初始化
         updateLandmarkGrid();
         updateStatus();
+        initComparePanelTimeRange();
     </script>
 </body>
 </html>

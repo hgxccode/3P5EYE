@@ -5,6 +5,8 @@ from flask import Flask, render_template, request, jsonify, send_from_directory
 import json
 import time
 import base64
+import requests
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
@@ -322,5 +324,185 @@ def process_image():
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/face_compare', methods=['POST'])
+def face_compare():
+    """
+    人像比对接口 - 调用科达API进行人脸搜索
+    支持完整的API参数：
+    - algorithmList: 算法列表
+    - algorithmStrategy: 算法策略 (default/all)
+    - count: 最大返回记录数
+    - similarityThreshold: 相似度阈值
+    - startTime/endTime: 时间范围
+    - deviceList: 设备列表
+    - linkedQuery: 是否关联查询
+    - multipleArrage: 综合排序 (0=算法分组, 1=整合排序)
+    - returnImageData: 是否返回base64图片数据
+    - caseId/caseName: 案件信息
+    - comparisonReason: 比对事由
+    """
+    try:
+        # 获取请求数据
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': '未提供请求数据'}), 400
+        
+        # 获取图片数据（base64格式）
+        image_data = data.get('imageData')
+        if not image_data:
+            return jsonify({'success': False, 'error': '未提供图片数据'}), 400
+        
+        # 移除base64前缀（如果有）
+        if ',' in image_data:
+            image_data = image_data.split(',')[1]
+        
+        # API配置
+        api_url = "http://10.151.151.83:8080/dataexchangeserver/apiPayload/qt_keda_imageSearchGj/ODI3Y2QxZTgtNGVlZS00ZDUxLThkYjMtNGE0MGMzYWJmMGRl"
+        
+        # 计算默认时间范围（最近30天）
+        end_time = datetime.now()
+        start_time = end_time - timedelta(days=30)
+        
+        # 构建请求参数 - 支持所有API参数
+        request_params = {
+            "imageData": image_data,
+            "algorithmStrategy": data.get('algorithmStrategy', 'all'),
+            "multipleArrage": int(data.get('multipleArrage', 1)),
+            "count": int(data.get('count', 10)),
+            "similarityThreshold": int(data.get('similarityThreshold', 80)),
+            "startTime": data.get('startTime', start_time.strftime("%Y-%m-%d %H:%M:%S")),
+            "endTime": data.get('endTime', end_time.strftime("%Y-%m-%d %H:%M:%S")),
+            "linkedQuery": str(data.get('linkedQuery', "0")),
+            "returnImageData": str(data.get('returnImageData', "1"))
+        }
+        
+        # 可选参数 - 算法列表
+        if data.get('algorithmList'):
+            request_params['algorithmList'] = data.get('algorithmList')
+        
+        # 可选参数 - 设备列表
+        if data.get('deviceList'):
+            request_params['deviceList'] = data.get('deviceList')
+        
+        # 可选参数 - 案件信息
+        if data.get('caseId'):
+            request_params['caseId'] = data.get('caseId')
+        if data.get('caseName'):
+            request_params['caseName'] = data.get('caseName')
+        
+        # 可选参数 - 比对事由
+        if data.get('comparisonReason'):
+            request_params['comparisonReason'] = data.get('comparisonReason')
+        
+        # 可选参数 - 身份证号和姓名
+        if data.get('sfzh'):
+            request_params['sfzh'] = data.get('sfzh')
+        if data.get('name'):
+            request_params['name'] = data.get('name')
+        
+        # 发送API请求
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        
+        print(f"[DEBUG] 发送API请求到: {api_url}")
+        print(f"[DEBUG] 请求参数: algorithmStrategy={request_params.get('algorithmStrategy')}, count={request_params.get('count')}, similarityThreshold={request_params.get('similarityThreshold')}")
+        print(f"[DEBUG] 时间范围: {request_params.get('startTime')} 至 {request_params.get('endTime')}")
+        
+        response = requests.post(api_url, json=request_params, headers=headers, timeout=60)
+        
+        print(f"[DEBUG] API响应状态码: {response.status_code}")
+        print(f"[DEBUG] API响应内容: {response.text[:500] if response.text else 'Empty'}...")
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"[DEBUG] 解析后的结果: code={result.get('code')}, status={result.get('status')}, message={result.get('message')}")
+            
+            # 解析返回结果 - 兼容多种返回格式
+            # 检查是否是后端服务错误
+            if result.get('code') == 'INTERNAL_SERVER_ERROR' or 'error' in str(result.get('msg', '')).lower():
+                error_msg = result.get('msg', '未知错误')
+                # 提取更友好的错误信息
+                if 'timed out' in error_msg.lower() or 'timeout' in error_msg.lower():
+                    return jsonify({
+                        'success': False,
+                        'error': '人脸比对服务响应超时，请稍后重试。这可能是由于服务器繁忙或图片过大导致。',
+                        'detail': error_msg
+                    })
+                else:
+                    return jsonify({
+                        'success': False,
+                        'error': f'人脸比对服务内部错误: {error_msg}',
+                        'detail': error_msg
+                    })
+            
+            if result.get('code') == '0' or result.get('code') == 0 or result.get('status') == 200 or result.get('result') == '0':
+                # 处理成功
+                compare_results = []
+                
+                # 检查result字段的类型
+                result_data = result.get('result')
+                if result_data == '0':
+                    # result为'0'表示成功但无数据
+                    return jsonify({
+                        'success': True,
+                        'results': [],
+                        'totalCount': 0,
+                        'message': '比对完成，未找到匹配结果'
+                    })
+                
+                if result_data and isinstance(result_data, list):
+                    for algorithm_result in result_data:
+                        algorithm_name = algorithm_result.get('algorithmName', '未知算法')
+                        algorithm_vendor = algorithm_result.get('algorithmVendor', '未知厂商')
+                        
+                        if algorithm_result.get('algorithmResultList'):
+                            for face_result in algorithm_result['algorithmResultList']:
+                                compare_results.append({
+                                    'algorithmName': algorithm_name,
+                                    'algorithmVendor': algorithm_vendor,
+                                    'similarity': face_result.get('similarity', '0'),
+                                    'shotTime': face_result.get('shotTime', ''),
+                                    'deviceName': face_result.get('deviceName', ''),
+                                    'faceUrl': face_result.get('faceUrl', ''),
+                                    'faceData': face_result.get('faceData', ''),
+                                    'overviewUrl': face_result.get('overviewUrl', ''),
+                                    'overviewData': face_result.get('overviewData', ''),
+                                    'personUrl': face_result.get('personUrl', ''),
+                                    'personData': face_result.get('personData', ''),
+                                    'faceId': face_result.get('faceId', ''),
+                                    'name': face_result.get('name', ''),
+                                    'idNumber': face_result.get('idNumber', '')
+                                })
+                
+                return jsonify({
+                    'success': True,
+                    'results': compare_results,
+                    'totalCount': len(compare_results),
+                    'timeElapsed': result.get('timeElapsed', 0)
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': f"API返回错误: {result.get('message', '未知错误')}",
+                    'code': result.get('code')
+                })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f"API请求失败，状态码: {response.status_code}"
+            }), 500
+            
+    except requests.exceptions.Timeout:
+        return jsonify({'success': False, 'error': 'API请求超时，请稍后重试'}), 504
+    except requests.exceptions.ConnectionError:
+        return jsonify({'success': False, 'error': 'API连接失败，请检查网络连接'}), 503
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5000)
